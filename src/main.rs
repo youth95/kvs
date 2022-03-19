@@ -1,11 +1,12 @@
 // TODO server and client need two bin
 
-use std::{io::Write, net::TcpStream, time::Duration};
+use std::{net::TcpStream, time::Duration};
 
 use clap::{ArgEnum, Parser, Subcommand};
 use kvs::{
-    cat, config::check_and_auto_fetch_token_to_disk, create_key_value, fetch_token, start_server,
-    KVSResult, KVSSession, KVSToken, Secret,
+    cat,
+    config::{get_or_create_jwt_secret, get_or_create_token, get_or_create_user_config_dir},
+    create_key_value, start_server, KVSResult, KVSSession,
 };
 use tracing_subscriber::prelude::*;
 
@@ -80,41 +81,11 @@ fn main() -> KVSResult<()> {
         KVSSession::new(stream)
     };
 
-    let fetch_token = || -> KVSResult<KVSToken> {
-        let kvs_dir_path = std::path::Path::new(".kvs");
-        let secret_file_path = kvs_dir_path.join("secret");
-        let secret = if secret_file_path.exists() {
-            Secret::from(std::fs::read_to_string(secret_file_path).unwrap())
-        } else {
-            let secret = Secret::default();
-            std::fs::create_dir_all(kvs_dir_path).unwrap();
-            let mut file = std::fs::File::create(secret_file_path).unwrap();
-            file.write_all(&secret.to_string().as_bytes()).unwrap();
-            secret
-        };
-        let mut session = get_kvs_session()?;
-        fetch_token(&mut session, &secret)
-    };
-
-    let get_token = || -> KVSResult<KVSToken> {
-        let kvs_dir_path = std::path::Path::new(".kvs");
-        let token_file_path = kvs_dir_path.join("token");
-        if token_file_path.exists() {
-            Ok(bincode::deserialize(
-                &std::fs::read(token_file_path).unwrap(),
-            )?)
-        } else {
-            fetch_token()
-        }
-    };
-
     match &kvs_cli.command {
         Commands::Start {
             reset_jwt_secret,
             detach,
         } => {
-            let user_kvs_config_dir_path = std::path::Path::new(".kvs");
-
             if *detach {
                 let args = std::env::args().map(|x| x).collect::<Vec<String>>();
                 let detach_command_args = args[1..]
@@ -146,7 +117,7 @@ fn main() -> KVSResult<()> {
                         .expect("kvs detach process failed to start.");
                 // recored child pid
 
-                let kvs_pid_file_path = user_kvs_config_dir_path.join("pid");
+                let kvs_pid_file_path = get_or_create_user_config_dir().join("pid");
                 std::fs::write(kvs_pid_file_path, child.id().to_string())?;
                 tracing::info!("kvs started PID: {}", child.id());
                 tracing::info!("The logs saved to ./kvs.log and ./kvs.errors.log");
@@ -154,46 +125,26 @@ fn main() -> KVSResult<()> {
                 return Ok(());
             }
 
-            if !user_kvs_config_dir_path.exists() {
-                std::fs::create_dir_all(user_kvs_config_dir_path)?;
-            }
-            let jwt_secret_file_path = user_kvs_config_dir_path.join("jwt_secret");
-
-            let jwt_secret = if jwt_secret_file_path.exists() && *reset_jwt_secret == false {
-                std::fs::read(jwt_secret_file_path)?
-            } else {
-                let jwt_secret = (0..256).map(|_| rand::random::<u8>()).collect::<Vec<u8>>();
-                std::fs::write(jwt_secret_file_path, &jwt_secret)?;
-                jwt_secret
-            };
+            let jwt_secret = get_or_create_jwt_secret(*reset_jwt_secret);
 
             start_server(&kvs_cli.repository, &jwt_secret)?;
         }
 
         Commands::Login => {
-            let user_kvs_config_dir_path = std::path::Path::new(".kvs");
-            if !user_kvs_config_dir_path.exists() {
-                std::fs::create_dir_all(user_kvs_config_dir_path)?;
-            }
-            let path = user_kvs_config_dir_path.join("token");
-            let token = fetch_token()?;
-            let token_bytes = bincode::serialize(&token)?;
-            std::fs::File::create(&path)?.write_all(&token_bytes)?;
-
-            tracing::info!("Token: {}", base64::encode(&token_bytes));
-            tracing::info!("Save Token file to: {}", path.display());
+            let (_, user_token_file_path) = get_or_create_token(&kvs_cli.repository, true);
+            tracing::info!("Save Token file to: {}", user_token_file_path);
         }
         Commands::Create {
             key,
             value,
             private,
         } => {
-            let token = check_and_auto_fetch_token_to_disk(&kvs_cli.repository)?;
+            let (token, _) = get_or_create_token(&kvs_cli.repository, false);
             let mut session = get_kvs_session()?;
             create_key_value(&mut session, &token, key, value, private)?;
         }
         Commands::Cat { key } => {
-            let token = get_token()?;
+            let (token, _) = get_or_create_token(&kvs_cli.repository, false);
             let mut session = get_kvs_session()?;
             let content = cat(&mut session, &token, key)?;
             let content_str = String::from_utf8(content).unwrap();

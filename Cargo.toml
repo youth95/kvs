@@ -21,6 +21,7 @@ static-dh-ecdh = "0.1.1"
 tracing = "0.1"
 tracing-subscriber = {version = "0.3.9", features = ["env-filter"]}
 mime = "0.3.16"
+dirs = "4.0.0"
 
 [profile.release]
 codegen-units = 1 
