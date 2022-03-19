@@ -3,16 +3,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     actions::KeyMeta,
-    kv_stream::NONCE,
-    spec::{KVPayloadResult, KVSRequest, KVSServe},
+    config::get_or_create_secret,
+    errors::{KVSError, KVSResult},
+    kv_session::{KVSSession, NONCE},
+    spec::{KVPayloadResult, KVSAction, Session},
     utils::{sha256, to_u8str},
-    KVSError, KVSResult, KVSSession, KVSToken, Secret,
 };
 
-use super::Actions;
+use super::{Actions, KVSToken};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Cat {
+pub struct CatAction {
     pub token: KVSToken,
     pub key: String,
 }
@@ -23,35 +24,18 @@ pub struct CatReply {
     content: Vec<u8>,
 }
 
-impl KVSRequest<Secret, Vec<u8>> for Cat {
-    fn request(&mut self, session: &mut KVSSession, secret: Option<Secret>) -> KVSResult<Vec<u8>> {
-        session.write(&Actions::Cat(self.clone()))?;
-        // todo status check
-        match KVSSession::to::<KVPayloadResult<CatReply>>(&session.read_vec()?)? {
-            KVPayloadResult::Err(error) => Err(KVSError::LogicError(error)),
-            KVPayloadResult::Ok(content) => {
-                let CatReply { meta, mut content } = content;
-                if let Some(rand) = meta.rand {
-                    if let Some(secret) = secret {
-                        let key = Key::from_slice(&secret.priv_key_bits[..32]);
-                        let cipher = Aes256Gcm::new(key);
-                        let rand = cipher.decrypt(Nonce::from_slice(NONCE), rand.as_slice())?;
-                        let key = Key::from_slice(rand.as_slice());
-                        let cipher = Aes256Gcm::new(key);
-                        content = cipher.decrypt(Nonce::from_slice(NONCE), &*content)?;
-                    } else {
-                        return Err(KVSError::LogicError("The secret is required".to_string()));
-                    }
-                }
-                Ok(content)
-            }
-        }
+impl CatReply {
+    // pub fn meta(&self) -> &KeyMeta {
+    //     &self.meta
+    // }
+    pub fn content(&self) -> &Vec<u8> {
+        &self.content
     }
 }
 
-impl KVSServe<()> for Cat {
-    fn serve(&mut self, session: &mut KVSSession, _: Option<()>) -> KVSResult<()> {
-        let Cat { key, token } = self;
+impl KVSAction<CatReply> for CatAction {
+    fn serve(&mut self, _: &mut impl Session) -> KVSResult<CatReply> {
+        let CatAction { key, token } = self;
         let KVSToken { id, .. } = token;
         let id_str = ["0x", &to_u8str(&id)].concat();
         let o_key = key.clone();
@@ -62,10 +46,10 @@ impl KVSServe<()> for Cat {
         let kv_path = data_user_dir_path.clone().join(&key);
 
         if !kv_path.exists() {
-            return Err(KVSError::LogicError(format!(
+            Err(KVSError::LogicError(format!(
                 "The key: `{}` is not exists.",
                 o_key
-            )));
+            )))
         } else {
             tracing::info!("[{}] Cat File Value: {} ({})", id_str, key, o_key);
             let content_file_path = kv_path.clone().join("value");
@@ -86,8 +70,48 @@ impl KVSServe<()> for Cat {
 
             let content = std::fs::read(content_file_path)?;
             let send_content = CatReply { meta, content };
-            session.write(&KVPayloadResult::Ok(send_content))?;
+            Ok(send_content)
         }
-        Ok(())
+    }
+
+    fn request(&mut self, session: &mut impl Session) -> KVSResult<CatReply> {
+        let secret = get_or_create_secret()?;
+        session.write(&Actions::CatAction(self.clone()))?;
+        let bytes = session.read_vec()?;
+
+        let reply = KVSSession::to::<KVPayloadResult<CatReply>>(&bytes)?;
+        match reply {
+            KVPayloadResult::Err(error) => Err(KVSError::LogicError(error.to_string())),
+            KVPayloadResult::Ok(mut reply) => {
+                if let Some(rand) = reply.meta.rand.clone() {
+                    let key = Key::from_slice(&secret.priv_key_bits[..32]);
+                    let cipher = Aes256Gcm::new(key);
+                    let rand = cipher.decrypt(Nonce::from_slice(NONCE), rand.as_slice())?;
+                    let key = Key::from_slice(rand.as_slice());
+                    let cipher = Aes256Gcm::new(key);
+                    reply.content = cipher.decrypt(Nonce::from_slice(NONCE), &*reply.content)?;
+                    Ok(reply)
+                } else {
+                    Err(KVSError::LogicError("rand is required".to_string()))
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod fetch_token {
+
+    use crate::{config::get_or_create_token, kv_session::MockSession, spec::KVSAction};
+
+    use super::CatAction;
+
+    #[test]
+    fn serve() {
+        let (token, _) = get_or_create_token(&"".to_string(), false).unwrap();
+        let key = "pr".to_string();
+        let mut session = MockSession::new().unwrap();
+        let mut cat_action = CatAction { token, key };
+        cat_action.serve(&mut session).unwrap();
     }
 }

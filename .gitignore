@@ -3,3 +3,4 @@
 .kvs
 Cargo.lock
 *.log
+mock_stream

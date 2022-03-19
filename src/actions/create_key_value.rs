@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    kv_stream::NONCE,
-    spec::{KVPayloadResult, KVSRequest, KVSServe, ReplyCode},
+    config::get_or_create_secret,
+    errors::{KVSError, KVSResult},
+    kv_session::{KVSSession, NONCE},
+    spec::{KVPayloadResult, KVSAction, ReplyCode, Session},
     utils::{sha256, to_u8str},
-    KVSError, KVSResult, KVSSession, Secret,
 };
 
 use aes_gcm::{aead::Aead, Aes256Gcm, Key, NewAead, Nonce};
@@ -18,6 +19,7 @@ pub struct KeyMeta {
     pub name: String,
     pub rand: Option<Vec<u8>>,
 }
+
 // impl KeyMeta {
 //     pub fn mime(&self) -> KVSResult<mime::Mime> {
 //         let result = self.mime.parse()?;
@@ -26,17 +28,16 @@ pub struct KeyMeta {
 // }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct CreateKeyValue {
+pub struct CreateKeyValueAction {
     pub token: KVSToken,
     pub key: String,
     pub meta: KeyMeta,
     pub value: Vec<u8>,
 }
 
-
-impl KVSServe<()> for CreateKeyValue {
-    fn serve(&mut self, session: &mut KVSSession, _: Option<()>) -> KVSResult<()> {
-        let CreateKeyValue {
+impl KVSAction<()> for CreateKeyValueAction {
+    fn serve(&mut self, session: &mut impl Session) -> KVSResult<()> {
+        let CreateKeyValueAction {
             token,
             key,
             value,
@@ -65,20 +66,16 @@ impl KVSServe<()> for CreateKeyValue {
         }
         Ok(())
     }
-}
 
-impl KVSRequest<Secret, ()> for CreateKeyValue {
-    fn request(&mut self, session: &mut KVSSession, secret: Option<Secret>) -> KVSResult<()> {
+    fn request(&mut self, session: &mut impl Session) -> KVSResult<()> {
+        let secret = get_or_create_secret()?;
         if let Some(rand) = &self.meta.rand {
             let key = Key::from_slice(rand.as_slice());
             let cipher = Aes256Gcm::new(key);
             self.value = cipher.encrypt(Nonce::from_slice(NONCE), &*self.value)?;
-
-            if let Some(secret) = secret {
-                let key = Key::from_slice(&secret.priv_key_bits[..32]);
-                let cipher = Aes256Gcm::new(key);
-                self.meta.rand = Some(cipher.encrypt(Nonce::from_slice(NONCE), rand.as_slice())?);
-            }
+            let key = Key::from_slice(&secret.priv_key_bits[..32]);
+            let cipher = Aes256Gcm::new(key);
+            self.meta.rand = Some(cipher.encrypt(Nonce::from_slice(NONCE), rand.as_slice())?);
         }
 
         session.write(&Actions::CreateKeyValue(self.clone()))?;
