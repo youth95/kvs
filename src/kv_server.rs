@@ -1,9 +1,9 @@
-use std::net::{TcpListener, TcpStream};
+use std::net::TcpListener;
 use std::thread;
 use std::time::Duration;
 
 use crate::actions::{Actions, Cat, CreateKeyValue};
-use crate::spec::KVSServe;
+use crate::spec::{KVPayloadResult, KVSServe};
 use crate::utils::sgin;
 use crate::{KVSError, KVSResult, KVSSession, KVSToken};
 
@@ -40,22 +40,21 @@ fn verify_jwt_token(jwt_secret: &[u8], msg: &Actions) -> KVSResult<()> {
     Ok(())
 }
 
-fn handle_client(stream: TcpStream, jwt_secret: &[u8]) -> KVSResult<()> {
-    chrono::Local::now().timestamp_millis();
-    stream.set_read_timeout(Some(Duration::from_millis(1000)))?;
-    let mut session = KVSSession::new(stream)?;
+fn handle_client(session: &mut KVSSession, jwt_secret: &[u8]) -> KVSResult<()> {
     let msg = KVSSession::to::<Actions>(&session.read_vec()?)?;
     // token verify
     verify_jwt_token(jwt_secret, &msg)?;
 
-    match &msg {
-        Actions::FetchToken(fetch_token) => fetch_token.serve(session, Some(jwt_secret.to_vec())),
-        Actions::CreateKeyValue(create_key_value) => create_key_value.serve(session, None),
-        Actions::Cat(cat) => cat.serve(session, None),
+    match msg {
+        Actions::FetchToken(mut fetch_token) => {
+            fetch_token.serve(session, Some(jwt_secret.to_vec()))
+        }
+        Actions::CreateKeyValue(mut create_key_value) => create_key_value.serve(session, None),
+        Actions::Cat(mut cat) => cat.serve(session, None),
     }
 }
 
-pub fn start_server(addr: &String, jwt_secret: &Vec<u8>) {
+pub fn start_server(addr: &String, jwt_secret: &Vec<u8>) -> KVSResult<()> {
     let listener = TcpListener::bind(addr).expect("Could not bind");
     tracing::info!("starting with {} successfully!", addr);
     for stream in listener.incoming() {
@@ -65,11 +64,21 @@ pub fn start_server(addr: &String, jwt_secret: &Vec<u8>) {
             }
             Ok(stream) => {
                 let jwt_secret = jwt_secret.clone();
+                stream.set_read_timeout(Some(Duration::from_millis(1000)))?;
+                let mut session = KVSSession::new(stream)?;
                 thread::spawn(move || {
-                    handle_client(stream, &jwt_secret)
-                        .unwrap_or_else(|error| eprintln!("{:?}", error));
+                    handle_client(&mut session, &jwt_secret).unwrap_or_else(|error| match error {
+                        KVSError::LogicError(logic_error) => {
+                            session
+                                .write(&KVPayloadResult::<()>::Err(logic_error))
+                                .unwrap_or_else(|error| tracing::error!("{}", error));
+                        }
+                        _ => tracing::error!("{}", error),
+                    });
                 });
             }
         }
     }
+
+    Ok(())
 }

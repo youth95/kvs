@@ -20,6 +20,7 @@ sha2 = "0.10.2"
 static-dh-ecdh = "0.1.1"
 tracing = "0.1"
 tracing-subscriber = {version = "0.3.9", features = ["env-filter"]}
+mime = "0.3.16"
 
 [profile.release]
 codegen-units = 1 

@@ -7,6 +7,7 @@ mod kv_stream;
 mod secret;
 mod spec;
 pub mod utils;
+pub mod config;
 
 pub use crate::actions::KVSToken;
 pub use crate::dh::KeyPair;

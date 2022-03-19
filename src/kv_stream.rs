@@ -3,12 +3,13 @@ use std::net::TcpStream;
 
 use crate::{errors::KVSResult, KVSError, KeyPair};
 
+
 pub struct KVSSession {
     stream: TcpStream,
     cipher: Aes256Gcm,
 }
 
-const NONCE: &[u8] = b"kvskvskvskvs";
+pub const NONCE: &[u8] = b"kvskvskvskvs";
 
 impl KVSSession {
     pub fn new(stream: TcpStream) -> KVSResult<Self> {

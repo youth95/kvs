@@ -6,6 +6,11 @@ Key Value Services is a cli tools that help to you create your Key-Value store s
 
 I want to create a content sharing tool that is managed by only one person and readable by many people in a secure network environment, so that I can use some common content in the terminal.
 
+
+# Install
+
+
+
 # Usage
 
 1. Start kvs in your server
@@ -23,15 +28,30 @@ I want to create a content sharing tool that is managed by only one person and r
 ```
 
 
-3. Create a key value
+3. Create a public key value
 ```
 > kvs create foo "hello world"
 ```
 
-4. Read a key (admin & user)
+4. Read a key
 ```
 > kvs cat foo
 hello world
+```
+
+5. Create a private key value
+
+```
+> kvs create priv_foo "priv hello world" -p
+```
+
+If you just do. kvs will encrypt the value use your `priv_key` in local. Remote just judge the key's owner. The decryption process needs to be completed by the client itself.
+
+
+6. Read a private key
+```
+> kvs cat priv_foo
+priv hello world
 ```
 
 # Example

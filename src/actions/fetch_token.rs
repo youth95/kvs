@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    spec::{KVSRequest, KVSServe},
+    spec::{KVPayloadResult, KVSRequest, KVSServe},
     utils::{sgin, to_u8str},
     KVSError, KVSResult, KVSSession, Secret,
 };
@@ -21,7 +21,7 @@ pub struct KVSToken {
 }
 
 impl KVSServe<Vec<u8>> for FetchToken {
-    fn serve(&self, mut session: KVSSession, jwt_secret: Option<Vec<u8>>) -> KVSResult<()> {
+    fn serve(&mut self, session: &mut KVSSession, jwt_secret: Option<Vec<u8>>) -> KVSResult<()> {
         match jwt_secret {
             None => Err(KVSError::LogicError("jwt_secret is required".to_string())),
             Some(jwt_secret) => {
@@ -44,7 +44,7 @@ impl KVSServe<Vec<u8>> for FetchToken {
 
                 let time_stamp = chrono::Local::now().timestamp_millis();
 
-                let reply = KVSToken {
+                let token = KVSToken {
                     id: addr.clone(),
                     time_stamp,
                     sign: sgin(
@@ -56,7 +56,7 @@ impl KVSServe<Vec<u8>> for FetchToken {
                         .concat(),
                     ),
                 };
-                session.write(&reply)?;
+                session.write(&KVPayloadResult::Ok(token))?;
 
                 Ok(())
             }
@@ -65,7 +65,7 @@ impl KVSServe<Vec<u8>> for FetchToken {
 }
 
 impl KVSRequest<&Secret, KVSToken> for FetchToken {
-    fn request(&self, mut session: KVSSession, secret: Option<&Secret>) -> KVSResult<KVSToken> {
+    fn request(&mut self, session: &mut KVSSession, secret: Option<&Secret>) -> KVSResult<KVSToken> {
         match secret {
             None => Err(KVSError::LogicError("secret is requred".to_string())),
             Some(secret) => {
@@ -82,10 +82,10 @@ impl KVSRequest<&Secret, KVSToken> for FetchToken {
                 session.write_vec(&c_nonce)?;
                 // 4. s -> c [jwt_token, addr,time_stamp,sign]
                 let token_bytes = session.read_vec()?;
-
-                let token: KVSToken = KVSSession::to::<KVSToken>(&token_bytes)?;
-        
-                Ok(token)
+                match KVSSession::to::<KVPayloadResult<KVSToken>>(&token_bytes)? {
+                    KVPayloadResult::Err(error) => Err(KVSError::LogicError(error)),
+                    KVPayloadResult::Ok(token) => Ok(token),
+                }
             }
         }
     }

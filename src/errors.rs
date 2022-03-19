@@ -7,6 +7,7 @@ pub enum KVSError {
     TryFromSliceError(std::array::TryFromSliceError),
     LogicError(String),
     BincodeError(Box<bincode::ErrorKind>),
+    MimeFromStrError(mime::FromStrError),
 }
 
 pub type KVSResult<T> = Result<T, KVSError>;
@@ -24,6 +25,7 @@ impl std::fmt::Display for KVSError {
             LogicError(ref e) => write!(f, "Logic Error: {}", e),
             BincodeError(ref e) => write!(f, "Bincode Error: {}", e),
             RSAError(ref e) => write!(f, "RSA Error: {}", e),
+            MimeFromStrError(ref e) => write!(f, "Mime FromStrError: {}", e),
         }
     }
 }
@@ -61,5 +63,11 @@ impl From<rsa::errors::Error> for KVSError {
 impl From<Box<bincode::ErrorKind>> for KVSError {
     fn from(bincode_error: Box<bincode::ErrorKind>) -> Self {
         KVSError::BincodeError(bincode_error)
+    }
+}
+
+impl From<mime::FromStrError> for KVSError {
+    fn from(mime_from_str_error: mime::FromStrError) -> Self {
+        KVSError::MimeFromStrError(mime_from_str_error)
     }
 }
