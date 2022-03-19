@@ -28,10 +28,12 @@ TODO
 ```
 
 
-3. Create a public key value
+3. Create a private key value
 ```
 > kvs create foo "hello world"
 ```
+
+default, kvs will encrypt the value use your `priv_key` in local. Remote just judge the key's owner. The decryption process needs to be completed by the client itself.
 
 4. Read a key
 ```
@@ -39,13 +41,13 @@ TODO
 hello world
 ```
 
-5. Create a private key value
+5. Create a public key value
 
 ```
 > kvs create priv_foo "priv hello world" -p
 ```
 
-If you just do. kvs will encrypt the value use your `priv_key` in local. Remote just judge the key's owner. The decryption process needs to be completed by the client itself.
+If you just do. kvs will send the value and save value as plaintext in remote.
 
 
 6. Read a private key

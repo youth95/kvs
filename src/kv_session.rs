@@ -1,6 +1,5 @@
 use aes_gcm::{aead::Aead, Aes256Gcm, Key, NewAead, Nonce};
-use std::io::{Read, Write};
-use std::{fs::File, net::TcpStream};
+use std::net::TcpStream;
 
 use crate::{
     errors::{KVSError, KVSResult},
@@ -62,11 +61,12 @@ impl Session for KVSSession {
     }
 }
 
+#[cfg(test)]
 pub struct MockSession {
-    stream: File,
+    stream: std::fs::File,
     cipher: Aes256Gcm,
 }
-
+#[cfg(test)]
 impl MockSession {
     pub fn new() -> KVSResult<Self> {
         if !std::path::Path::new("mock_stream").exists() {
@@ -80,7 +80,7 @@ impl MockSession {
         Ok(MockSession { stream, cipher })
     }
 }
-
+#[cfg(test)]
 impl Session for MockSession {
     fn read_vec(&mut self) -> KVSResult<Vec<u8>> {
         let payload: Vec<u8> = bincode::deserialize_from(&self.stream)?;

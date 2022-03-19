@@ -31,8 +31,8 @@ pub enum Commands {
         key: String,
         value: String,
 
-        #[clap(short, long, help = "start kvs server in bg")]
-        private: bool,
+        #[clap(short, long, help = "create public key")]
+        public: bool,
     },
 
     #[clap(long_about = "cat key content")]
@@ -118,7 +118,7 @@ impl Commands {
             Commands::Create {
                 key,
                 value,
-                private,
+                public,
             } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
@@ -126,7 +126,7 @@ impl Commands {
                 let size = value.len() as u64;
                 let owner = token.id.clone();
 
-                let rand = if *private {
+                let rand = if *public == false {
                     Some((0..32).map(|_| rand::random::<u8>()).collect::<Vec<u8>>())
                 } else {
                     None
