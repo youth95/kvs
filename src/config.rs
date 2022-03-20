@@ -95,7 +95,7 @@ pub fn get_or_create_repository_config() -> KVSResult<String> {
     let user_config_kv_dir = get_or_create_user_config_kv_dir()?;
     let user_config_kv_repository_file_path = user_config_kv_dir.join("repository");
     if !&user_config_kv_repository_file_path.exists() {
-        std::fs::write(&user_config_kv_repository_file_path, b"0.0.0.0:8888")?;
+        std::fs::write(&user_config_kv_repository_file_path, b"kvs.youth95.cn:8888")?;
     }
 
     Ok(std::fs::read_to_string(
