@@ -1,4 +1,4 @@
-use crate::actions::{Actions, CatAction, CreateKeyValueAction, KVSToken};
+use crate::actions::{Actions, ReadAction, CreateAction, KVSToken};
 use crate::errors::{KVSError, KVSResult};
 use crate::kv_session::KVSSession;
 use crate::spec::{KVPayloadResult, KVSAction, Session};
@@ -7,8 +7,8 @@ use crate::utils::sgin;
 pub fn verify_jwt_token(jwt_secret: &[u8], msg: &Actions) -> KVSResult<()> {
     let token = match &msg {
         Actions::FetchToken(_) => None,
-        Actions::CreateKeyValue(CreateKeyValueAction { token, .. }) => Some(token),
-        Actions::CatAction(CatAction { token, .. }) => Some(token),
+        Actions::CreateKeyValue(CreateAction { token, .. }) => Some(token),
+        Actions::CatAction(ReadAction { token, .. }) => Some(token),
     };
     if let Some(token) = token {
         let KVSToken {

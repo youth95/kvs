@@ -1,9 +1,9 @@
-mod cat;
-mod create_key_value;
+mod read;
+mod create;
 mod fetch_token;
 
-pub use cat::{CatAction, CatReply};
-pub use create_key_value::{CreateKeyValueAction, KeyMeta};
+pub use read::{CatReply, ReadAction};
+pub use create::{CreateAction, KeyMeta};
 pub use fetch_token::{FetchTokenAction, KVSToken};
 
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Actions {
     FetchToken(FetchTokenAction),
-    CreateKeyValue(CreateKeyValueAction),
-    CatAction(CatAction),
+    CreateKeyValue(CreateAction),
+    CatAction(ReadAction),
 }

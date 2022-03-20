@@ -28,16 +28,16 @@ pub struct KeyMeta {
 // }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct CreateKeyValueAction {
+pub struct CreateAction {
     pub token: KVSToken,
     pub key: String,
     pub meta: KeyMeta,
     pub value: Vec<u8>,
 }
 
-impl KVSAction<()> for CreateKeyValueAction {
+impl KVSAction<()> for CreateAction {
     fn serve(&mut self, session: &mut impl Session) -> KVSResult<()> {
-        let CreateKeyValueAction {
+        let CreateAction {
             token,
             key,
             value,
@@ -54,7 +54,7 @@ impl KVSAction<()> for CreateKeyValueAction {
         let kv_path = data_user_dir_path.clone().join(&key);
         if kv_path.exists() {
             return Err(KVSError::LogicError(format!(
-                "The key: {} arealy exists.",
+                "The key: `{}` arealy exists.",
                 o_key
             )));
         } else {

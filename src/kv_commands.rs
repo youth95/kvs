@@ -7,7 +7,7 @@ use std::{
 use clap::Subcommand;
 
 use crate::{
-    actions::{CatAction, CreateKeyValueAction, KeyMeta},
+    actions::{CreateAction, KeyMeta, ReadAction},
     config::{get_or_create_jwt_secret, get_or_create_token, get_or_create_user_config_dir},
     errors::KVSResult,
     kv_server::service,
@@ -24,19 +24,19 @@ pub enum Commands {
         #[clap(short, long, help = "start kvs server in bg")]
         detach: bool,
     },
-    #[clap(long_about = "login to kvs")]
+    #[clap(long_about = "Login to kvs")]
     Login,
-    #[clap(long_about = "create key value")]
+    #[clap(long_about = "Create key value")]
     Create {
         key: String,
         value: String,
 
-        #[clap(short, long, help = "create public key")]
+        #[clap(short, long, help = "As public key")]
         public: bool,
     },
 
-    #[clap(long_about = "cat key content")]
-    Cat { key: String },
+    #[clap(long_about = "Read key content")]
+    Read { key: String },
 }
 
 impl Commands {
@@ -115,11 +115,7 @@ impl Commands {
                 let (_, user_token_file_path) = get_or_create_token(repository, true)?;
                 tracing::info!("Save Token file to: {}", user_token_file_path);
             }
-            Commands::Create {
-                key,
-                value,
-                public,
-            } => {
+            Commands::Create { key, value, public } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
                 let value = value.as_bytes().to_vec();
@@ -131,7 +127,7 @@ impl Commands {
                 } else {
                     None
                 };
-                CreateKeyValueAction {
+                CreateAction {
                     token: token.clone(),
                     key: key.to_string(),
                     value,
@@ -145,10 +141,10 @@ impl Commands {
                 }
                 .request(&mut session)?
             }
-            Commands::Cat { key } => {
+            Commands::Read { key } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let mut session = get_kvs_session()?;
-                let reply = CatAction {
+                let reply = ReadAction {
                     token: token.clone(),
                     key: key.to_string(),
                 }
