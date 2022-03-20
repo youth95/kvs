@@ -4,7 +4,7 @@ use crate::{
     errors::KVSError,
     kv_session::KVSSession,
     spec::{KVPayloadResult, KVSAction, ReplyCode},
-    utils::{sha256, to_u8str},
+    utils::{sha256, to_u8str}, config::get_or_create_data_dir,
 };
 
 use super::{Actions, KVSToken};
@@ -23,7 +23,7 @@ impl KVSAction<ReplyCode> for DeleteAction {
         let o_key = key.clone();
         let key = to_u8str(&sha256(key.as_bytes()));
 
-        let data_dir_path = std::path::Path::new("data");
+        let data_dir_path = get_or_create_data_dir()?;
         let data_user_dir_path = data_dir_path.clone().join(&id_str);
         let kv_path = data_user_dir_path.clone().join(&key);
         if !kv_path.exists() {

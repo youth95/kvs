@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     actions::KeyMeta,
-    config::get_or_create_secret,
+    config::{get_or_create_data_dir, get_or_create_secret},
     errors::{KVSError, KVSResult},
     kv_session::{KVSSession, NONCE},
     spec::{KVPayloadResult, KVSAction, Session},
@@ -41,7 +41,7 @@ impl KVSAction<CatReply> for ReadAction {
         let o_key = key.clone();
         let key = to_u8str(&sha256(key.as_bytes()));
 
-        let data_dir_path = std::path::Path::new("data");
+        let data_dir_path = get_or_create_data_dir()?;
         let data_user_dir_path = data_dir_path.clone().join(&id_str);
         let kv_path = data_user_dir_path.clone().join(&key);
 

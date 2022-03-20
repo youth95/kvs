@@ -1,6 +1,12 @@
 use std::{io::Write, net::TcpStream, path::PathBuf, time::Duration};
 
-use crate::{actions::{FetchTokenAction, KVSToken}, kv_session::KVSSession, secret::Secret, spec::KVSAction, errors::KVSResult};
+use crate::{
+    actions::{FetchTokenAction, KVSToken},
+    errors::KVSResult,
+    kv_session::KVSSession,
+    secret::Secret,
+    spec::KVSAction,
+};
 
 pub fn get_or_create_token(
     repository: &String,
@@ -40,7 +46,7 @@ pub fn get_or_create_secret() -> KVSResult<Secret> {
         )?))
     } else {
         let secret = Secret::default();
-        std::fs::create_dir_all(*user_kvs_config_dir_path)?;
+        std::fs::create_dir_all(user_kvs_config_dir_path)?;
         let mut file = std::fs::File::create(user_secret_file_path)?;
         file.write_all(&secret.to_string().as_bytes())?;
         Ok(secret)
@@ -60,10 +66,18 @@ pub fn get_or_create_jwt_secret(froce_create: bool) -> KVSResult<Vec<u8>> {
     }
 }
 
-pub fn get_or_create_user_config_dir() -> KVSResult<Box<PathBuf>> {
+pub fn get_or_create_user_config_dir() -> KVSResult<PathBuf> {
     let user_kvs_config_dir_path = dirs::home_dir().unwrap().join(".kvs");
     if !user_kvs_config_dir_path.exists() {
         std::fs::create_dir_all(&user_kvs_config_dir_path)?;
     }
-    Ok(Box::new(user_kvs_config_dir_path))
+    Ok(user_kvs_config_dir_path)
+}
+
+pub fn get_or_create_data_dir() -> KVSResult<PathBuf> {
+    let user_kvs_config_dir_path = dirs::data_dir().unwrap().join(".kvs_data");
+    if !user_kvs_config_dir_path.exists() {
+        std::fs::create_dir_all(&user_kvs_config_dir_path)?;
+    }
+    Ok(user_kvs_config_dir_path)
 }
