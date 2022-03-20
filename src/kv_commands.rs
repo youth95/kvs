@@ -7,7 +7,7 @@ use std::{
 use clap::Subcommand;
 
 use crate::{
-    actions::{CreateAction, KeyMeta, ReadAction},
+    actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, UpdateAction},
     config::{get_or_create_jwt_secret, get_or_create_token, get_or_create_user_config_dir},
     errors::KVSResult,
     kv_server::service,
@@ -35,8 +35,19 @@ pub enum Commands {
         public: bool,
     },
 
+    #[clap(long_about = "Update key value")]
+    Update {
+        key: String,
+        value: String,
+
+        #[clap(short, long, help = "As public key")]
+        public: bool,
+    },
+
     #[clap(long_about = "Read key content")]
     Read { key: String },
+    #[clap(long_about = "Delete key")]
+    Delete { key: String },
 }
 
 impl Commands {
@@ -141,6 +152,33 @@ impl Commands {
                 }
                 .request(&mut session)?
             }
+            Commands::Update { key, value, public } => {
+                let (token, _) = get_or_create_token(repository, false)?;
+                let mut session = get_kvs_session()?;
+                let value = value.as_bytes().to_vec();
+                let size = value.len() as u64;
+                let owner = token.id.clone();
+
+                let rand = if *public == false {
+                    Some((0..32).map(|_| rand::random::<u8>()).collect::<Vec<u8>>())
+                } else {
+                    None
+                };
+                UpdateAction {
+                    token: token.clone(),
+                    key: key.to_string(),
+                    value,
+                    meta: KeyMeta {
+                        mime: "text/plain".to_string(),
+                        size,
+                        owner,
+                        name: key.to_string(),
+                        rand,
+                    },
+                }
+                .request(&mut session)?;
+            }
+
             Commands::Read { key } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let mut session = get_kvs_session()?;
@@ -152,6 +190,15 @@ impl Commands {
                 let content = reply.content();
                 let content_str = String::from_utf8(content.to_vec()).unwrap();
                 println!("{}", content_str);
+            }
+            Commands::Delete { key } => {
+                let (token, _) = get_or_create_token(&repository, false)?;
+                let mut session = get_kvs_session()?;
+                DeleteAction {
+                    token: token.clone(),
+                    key: key.to_string(),
+                }
+                .request(&mut session)?;
             }
         };
         Ok(())

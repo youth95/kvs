@@ -1,4 +1,4 @@
-use crate::actions::{Actions, ReadAction, CreateAction, KVSToken};
+use crate::actions::{Actions, CreateAction, DeleteAction, KVSToken, ReadAction, UpdateAction};
 use crate::errors::{KVSError, KVSResult};
 use crate::kv_session::KVSSession;
 use crate::spec::{KVPayloadResult, KVSAction, Session};
@@ -9,6 +9,8 @@ pub fn verify_jwt_token(jwt_secret: &[u8], msg: &Actions) -> KVSResult<()> {
         Actions::FetchToken(_) => None,
         Actions::CreateKeyValue(CreateAction { token, .. }) => Some(token),
         Actions::CatAction(ReadAction { token, .. }) => Some(token),
+        Actions::DeleteAction(DeleteAction { token, .. }) => Some(token),
+        Actions::UpdateAction(UpdateAction { token, .. }) => Some(token),
     };
     if let Some(token) = token {
         let KVSToken {
@@ -44,6 +46,8 @@ pub fn handle_client(session: &mut impl Session, jwt_secret: &[u8]) -> KVSResult
         Actions::FetchToken(mut fetch_token) => fetch_token.serve_serialize(session),
         Actions::CreateKeyValue(mut create_key_value) => create_key_value.serve_serialize(session),
         Actions::CatAction(mut cat) => cat.serve_serialize(session),
+        Actions::DeleteAction(mut delete) => delete.serve_serialize(session),
+        Actions::UpdateAction(mut update) => update.serve_serialize(session),
     }?;
     Ok(reply)
 }
