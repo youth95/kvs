@@ -4,7 +4,7 @@ description = "A refreshingly simple data-driven game engine and app framework"
 edition = "2021"
 keywords = ["key value", "cli"]
 license = "Apache-2.0"
-name = "kvs"
+name = "key_value_service"
 repository = "https://github.com/youth95/kvs"
 version = "0.1.1"
 

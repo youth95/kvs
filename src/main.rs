@@ -1,5 +1,5 @@
 use clap::{ArgEnum, Parser};
-use kvs::Commands;
+use key_value_service::Commands;
 use tracing_subscriber::prelude::*;
 
 #[derive(Parser, Debug, Clone)]
