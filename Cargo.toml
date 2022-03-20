@@ -1,6 +1,11 @@
 [package]
+categories = ["cli", "store"]
+description = "A refreshingly simple data-driven game engine and app framework"
 edition = "2021"
+keywords = ["key value", "cli"]
+license = "Apache-2.0"
 name = "kvs"
+repository = "https://github.com/youth95/kvs"
 version = "0.1.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,6 +16,8 @@ base64 = "0.13.0"
 bincode = "1.3.3"
 chrono = "0.4.19"
 clap = {version = "3.1.6", features = ["derive"]}
+dirs = "4.0.0"
+mime = "0.3.16"
 pem = "1.0.2"
 rand = "0.8.5"
 ripemd = "0.1.1"
@@ -20,13 +27,11 @@ sha2 = "0.10.2"
 static-dh-ecdh = "0.1.1"
 tracing = "0.1"
 tracing-subscriber = {version = "0.3.9", features = ["env-filter"]}
-mime = "0.3.16"
-dirs = "4.0.0"
 version = "3.0.0"
 
 [profile.release]
-codegen-units = 1 
-lto = true 
+codegen-units = 1
+lto = true
 opt-level = "z"
-panic = "abort" 
+panic = "abort"
 # strip = "debuginfo"
