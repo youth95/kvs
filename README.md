@@ -9,7 +9,9 @@ I want to create a content sharing tool that is managed by only one person and r
 
 # Install
 
-TODO
+```bash
+cargo install key_value_service
+```
 
 # Usage
 
