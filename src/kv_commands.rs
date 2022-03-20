@@ -8,7 +8,10 @@ use clap::Subcommand;
 
 use crate::{
     actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, RemoteVersionAction, UpdateAction},
-    config::{get_or_create_jwt_secret, get_or_create_token, get_or_create_user_config_dir},
+    config::{
+        get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_token,
+        get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
+    },
     errors::KVSResult,
     kv_server::service,
     kv_session::KVSSession,
@@ -51,10 +54,20 @@ pub enum Commands {
 
     #[clap(long_about = "Show remote info")]
     Remote,
+
+    #[clap(long_about = "Set client config")]
+    Set { key: String, value: String },
+
+    #[clap(long_about = "Get client config")]
+    Get { key: String },
 }
 
 impl Commands {
-    pub fn run(&self, repository: &String) -> KVSResult<()> {
+    pub fn run(&self, repository: &Option<String>) -> KVSResult<()> {
+        let repository = &match repository {
+            Some(repository) => repository.to_string(),
+            None => get_or_create_repository_config()?,
+        };
         let get_kvs_session = || -> KVSResult<KVSSession> {
             let stream = TcpStream::connect(repository)?;
             stream
@@ -207,6 +220,18 @@ impl Commands {
                 let mut session = get_kvs_session()?;
                 let version = RemoteVersionAction.request(&mut session)?;
                 println!("{}", version);
+            }
+            Commands::Set { key, value } => {
+                let user_config_kv_dir = get_or_create_user_config_kv_dir()?;
+                let key_config_file_path = user_config_kv_dir.join(key);
+                std::fs::write(key_config_file_path, value.as_bytes())?
+            }
+            Commands::Get { key } => {
+                let user_config_kv_dir = get_or_create_user_config_kv_dir()?;
+                let key_config_file_path = user_config_kv_dir.join(key);
+                if key_config_file_path.exists() {
+                    println!("{}", std::fs::read_to_string(key_config_file_path)?)
+                }
             }
         };
         Ok(())

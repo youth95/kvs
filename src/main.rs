@@ -11,8 +11,8 @@ struct KVS {
     #[clap(short, long, help = "Use verbose output")]
     verbose: bool,
 
-    #[clap(short, long, help = "Set Repository", default_value = "0.0.0.0:8888")]
-    repository: String,
+    #[clap(short, long, help = "Set Repository")]
+    repository: Option<String>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]

@@ -115,6 +115,6 @@ kvs cat important_resource_urls | transform
 ```
 
 # Road Map
-
-[ ] add `upload` command to upload all file in current directory and use the relative directory as key.
-[ ] add `set` command to set the config in client local.
+* [*] add `set` and `get` command to config some value in client local
+* [ ] add `upload` command to upload all file in current directory and use the relative directory as key.
+* [ ] add `set` command to set the config in client local.
