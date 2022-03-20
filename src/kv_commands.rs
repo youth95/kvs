@@ -36,6 +36,8 @@ pub enum Commands {
 
         #[clap(short, long, help = "As public key")]
         public: bool,
+        #[clap(short, long, help = "Value Type", default_value = "text/plain")]
+        value_type: String,
     },
 
     #[clap(long_about = "Update key value")]
@@ -45,6 +47,9 @@ pub enum Commands {
 
         #[clap(short, long, help = "As public key")]
         public: bool,
+
+        #[clap(short, long, help = "Value Type", default_value = "text/plain")]
+        value_type: String,
     },
 
     #[clap(long_about = "Read key content")]
@@ -142,7 +147,12 @@ impl Commands {
                 let (_, user_token_file_path) = get_or_create_token(repository, true)?;
                 tracing::info!("Save Token file to: {}", user_token_file_path);
             }
-            Commands::Create { key, value, public } => {
+            Commands::Create {
+                key,
+                value,
+                public,
+                value_type,
+            } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
                 let value = value.as_bytes().to_vec();
@@ -159,7 +169,7 @@ impl Commands {
                     key: key.to_string(),
                     value,
                     meta: KeyMeta {
-                        mime: "text/plain".to_string(),
+                        mime: value_type.to_string(),
                         size,
                         owner,
                         name: key.to_string(),
@@ -168,7 +178,12 @@ impl Commands {
                 }
                 .request(&mut session)?
             }
-            Commands::Update { key, value, public } => {
+            Commands::Update {
+                key,
+                value,
+                public,
+                value_type,
+            } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
                 let value = value.as_bytes().to_vec();
@@ -185,7 +200,7 @@ impl Commands {
                     key: key.to_string(),
                     value,
                     meta: KeyMeta {
-                        mime: "text/plain".to_string(),
+                        mime: value_type.to_string(),
                         size,
                         owner,
                         name: key.to_string(),
