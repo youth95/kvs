@@ -7,7 +7,7 @@ use std::{
 use clap::Subcommand;
 
 use crate::{
-    actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, UpdateAction},
+    actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, RemoteVersionAction, UpdateAction},
     config::{get_or_create_jwt_secret, get_or_create_token, get_or_create_user_config_dir},
     errors::KVSResult,
     kv_server::service,
@@ -48,6 +48,9 @@ pub enum Commands {
     Read { key: String },
     #[clap(long_about = "Delete key")]
     Delete { key: String },
+
+    #[clap(long_about = "Show remote info")]
+    Remote,
 }
 
 impl Commands {
@@ -199,6 +202,11 @@ impl Commands {
                     key: key.to_string(),
                 }
                 .request(&mut session)?;
+            }
+            Commands::Remote => {
+                let mut session = get_kvs_session()?;
+                let version = RemoteVersionAction.request(&mut session)?;
+                println!("{}", version);
             }
         };
         Ok(())

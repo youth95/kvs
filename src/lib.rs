@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate version;
+
 mod actions;
 mod config;
 mod errors;

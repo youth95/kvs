@@ -1,4 +1,4 @@
-# [WIP] KVS
+# KVS
 
 Key Value Services is a cli tools that help to you create your Key-Value store services.
 
@@ -37,7 +37,7 @@ default, kvs will encrypt the value use your `priv_key` in local. Remote just ju
 
 4. Read a key
 ```
-> kvs cat foo
+> kvs read foo
 hello world
 ```
 
@@ -54,6 +54,20 @@ If you just do. kvs will send the value and save value as plaintext in remote.
 ```
 > kvs cat priv_foo
 priv hello world
+```
+
+7. Delete a Key
+```
+> kvs delete priv_foo
+```
+
+You just can delete key that owner is you.
+
+8. Update a Key
+```
+kvs create priv_foo "this is change data"
+kvs read priv_foo
+this is change data
 ```
 
 # Example

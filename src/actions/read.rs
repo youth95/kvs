@@ -25,9 +25,6 @@ pub struct CatReply {
 }
 
 impl CatReply {
-    // pub fn meta(&self) -> &KeyMeta {
-    //     &self.meta
-    // }
     pub fn content(&self) -> &Vec<u8> {
         &self.content
     }

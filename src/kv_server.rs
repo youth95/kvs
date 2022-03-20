@@ -6,7 +6,7 @@ use crate::utils::sgin;
 
 pub fn verify_jwt_token(jwt_secret: &[u8], msg: &Actions) -> KVSResult<()> {
     let token = match &msg {
-        Actions::FetchToken(_) => None,
+        Actions::FetchToken(_) | Actions::RemoteVersionAction(_) => None,
         Actions::CreateKeyValue(CreateAction { token, .. }) => Some(token),
         Actions::CatAction(ReadAction { token, .. }) => Some(token),
         Actions::DeleteAction(DeleteAction { token, .. }) => Some(token),
@@ -48,6 +48,7 @@ pub fn handle_client(session: &mut impl Session, jwt_secret: &[u8]) -> KVSResult
         Actions::CatAction(mut cat) => cat.serve_serialize(session),
         Actions::DeleteAction(mut delete) => delete.serve_serialize(session),
         Actions::UpdateAction(mut update) => update.serve_serialize(session),
+        Actions::RemoteVersionAction(mut remote_version) => remote_version.serve_serialize(session),
     }?;
     Ok(reply)
 }
