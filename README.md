@@ -1,4 +1,4 @@
-# KVS
+# [WIP] KVS
 
 Key Value Services is a cli tools that help to you create your Key-Value store services.
 
