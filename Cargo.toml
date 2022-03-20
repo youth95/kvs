@@ -2,7 +2,7 @@
 categories = ["cli", "store"]
 description = "A refreshingly simple data-driven game engine and app framework"
 edition = "2021"
-keywords = ["key value", "cli"]
+keywords = ["key", "value", "cli"]
 license = "Apache-2.0"
 name = "key_value_service"
 repository = "https://github.com/youth95/kvs"
