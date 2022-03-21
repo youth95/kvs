@@ -6,7 +6,7 @@ keywords = ["key", "value", "cli"]
 license = "Apache-2.0"
 name = "key_value_service"
 repository = "https://github.com/youth95/kvs"
-version = "0.1.4"
+version = "0.1.5"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

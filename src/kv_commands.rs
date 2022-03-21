@@ -12,7 +12,7 @@ use crate::{
         get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_secret,
         get_or_create_token, get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
     },
-    errors::KVSResult,
+    errors::{KVSError, KVSResult},
     kv_server::service,
     kv_session::KVSSession,
     spec::KVSAction,
@@ -33,7 +33,11 @@ pub enum Commands {
     #[clap(long_about = "Create key value")]
     Create {
         key: String,
-        value: String,
+
+        value: Option<String>,
+
+        #[clap(short, long, help = "Use file content")]
+        file: Option<String>,
 
         #[clap(short, long, help = "As public key")]
         public: bool,
@@ -44,7 +48,11 @@ pub enum Commands {
     #[clap(long_about = "Update key value")]
     Update {
         key: String,
-        value: String,
+
+        value: Option<String>,
+
+        #[clap(short, long, help = "Use file content")]
+        file: Option<String>,
 
         #[clap(short, long, help = "As public key")]
         public: bool,
@@ -159,10 +167,24 @@ impl Commands {
                 value,
                 public,
                 value_type,
+                file,
             } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
-                let value = value.as_bytes().to_vec();
+
+                let value = match value {
+                    Some(value) => value.as_bytes().to_vec(),
+                    None => match file {
+                        Some(file_path) => std::fs::read(file_path)?,
+                        None => {
+                            return Err(KVSError::LogicError(
+                                "value params and file option can not to None in same time"
+                                    .to_string(),
+                            ))
+                        }
+                    },
+                };
+
                 let size = value.len() as u64;
                 let owner = token.id.clone();
 
@@ -190,10 +212,22 @@ impl Commands {
                 value,
                 public,
                 value_type,
+                file,
             } => {
                 let (token, _) = get_or_create_token(repository, false)?;
                 let mut session = get_kvs_session()?;
-                let value = value.as_bytes().to_vec();
+                let value = match value {
+                    Some(value) => value.as_bytes().to_vec(),
+                    None => match file {
+                        Some(file_path) => std::fs::read(file_path)?,
+                        None => {
+                            return Err(KVSError::LogicError(
+                                "value params and file option can not to None in same time"
+                                    .to_string(),
+                            ))
+                        }
+                    },
+                };
                 let size = value.len() as u64;
                 let owner = token.id.clone();
 
