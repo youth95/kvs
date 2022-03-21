@@ -9,13 +9,14 @@ use clap::Subcommand;
 use crate::{
     actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, RemoteVersionAction, UpdateAction},
     config::{
-        get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_token,
-        get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
+        get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_secret,
+        get_or_create_token, get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
     },
     errors::KVSResult,
     kv_server::service,
     kv_session::KVSSession,
     spec::KVSAction,
+    utils::to_addr,
 };
 
 #[derive(Debug, Subcommand, Clone)]
@@ -53,12 +54,18 @@ pub enum Commands {
     },
 
     #[clap(long_about = "Read key content")]
-    Read { key: String },
+    Read {
+        key: String,
+        #[clap(short, long, help = "in other scope")]
+        scope: Option<String>,
+    },
     #[clap(long_about = "Delete key")]
     Delete { key: String },
 
     #[clap(long_about = "Show remote info")]
     Remote,
+    #[clap(long_about = "Show local info")]
+    Local,
 
     #[clap(long_about = "Set client config")]
     Set { key: String, value: String },
@@ -210,12 +217,14 @@ impl Commands {
                 .request(&mut session)?;
             }
 
-            Commands::Read { key } => {
+            Commands::Read { key, scope } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let mut session = get_kvs_session()?;
+                let scope = scope.clone();
                 let reply = ReadAction {
                     token: token.clone(),
                     key: key.to_string(),
+                    scope,
                 }
                 .request(&mut session)?;
                 let content = reply.content();
@@ -231,11 +240,6 @@ impl Commands {
                 }
                 .request(&mut session)?;
             }
-            Commands::Remote => {
-                let mut session = get_kvs_session()?;
-                let version = RemoteVersionAction.request(&mut session)?;
-                println!("{}", version);
-            }
             Commands::Set { key, value } => {
                 let user_config_kv_dir = get_or_create_user_config_kv_dir()?;
                 let key_config_file_path = user_config_kv_dir.join(key);
@@ -247,6 +251,17 @@ impl Commands {
                 if key_config_file_path.exists() {
                     println!("{}", std::fs::read_to_string(key_config_file_path)?)
                 }
+            }
+            Commands::Remote => {
+                let mut session = get_kvs_session()?;
+                let version = RemoteVersionAction.request(&mut session)?;
+                println!("{}", version);
+            }
+            Commands::Local => {
+                let secret = get_or_create_secret()?;
+                let scope = to_addr(&secret.pub_key_bits);
+
+                println!("scope: {}", scope);
             }
         };
         Ok(())

@@ -16,6 +16,7 @@ use super::{Actions, KVSToken};
 pub struct ReadAction {
     pub token: KVSToken,
     pub key: String,
+    pub scope: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -32,14 +33,20 @@ impl CatReply {
 
 impl KVSAction<CatReply> for ReadAction {
     fn serve(&mut self, _: &mut impl Session) -> KVSResult<CatReply> {
-        let ReadAction { key, token } = self;
+        let ReadAction { key, token, scope } = self;
         let KVSToken { id, .. } = token;
         let id_str = ["0x", &to_u8str(&id)].concat();
         let o_key = key.clone();
         let key = to_u8str(&sha256(key.as_bytes()));
 
         let data_dir_path = get_or_create_data_dir()?;
-        let data_user_dir_path = data_dir_path.clone().join(&id_str);
+
+        let scope = match scope {
+            Some(scope) => scope,
+            None => &id_str,
+        };
+
+        let data_user_dir_path = data_dir_path.clone().join(scope);
         let kv_path = data_user_dir_path.clone().join(&key);
 
         if !kv_path.exists() {
@@ -87,10 +94,8 @@ impl KVSAction<CatReply> for ReadAction {
                     let key = Key::from_slice(rand.as_slice());
                     let cipher = Aes256Gcm::new(key);
                     reply.content = cipher.decrypt(Nonce::from_slice(NONCE), &*reply.content)?;
-                    Ok(reply)
-                } else {
-                    Err(KVSError::LogicError("rand is required".to_string()))
                 }
+                Ok(reply)
             }
         }
     }
@@ -108,7 +113,11 @@ mod fetch_token {
         let (token, _) = get_or_create_token(&"".to_string(), false).unwrap();
         let key = "pr".to_string();
         let mut session = MockSession::new().unwrap();
-        let mut cat_action = ReadAction { token, key };
+        let mut cat_action = ReadAction {
+            token,
+            key,
+            scope: None,
+        };
         cat_action.serve(&mut session).unwrap();
     }
 }

@@ -23,3 +23,8 @@ pub fn to_u8str(bytes: &[u8]) -> String {
         .collect::<Vec<String>>()
         .join("")
 }
+
+pub fn to_addr(payload: &[u8]) -> String {
+    let data = sgin(&ripemd_160(payload));
+    format!("0x{}", to_u8str(&data))
+}

@@ -72,6 +72,23 @@ kvs read priv_foo
 this is change data
 ```
 
+9. show remote info
+```
+> kvs remote
+0.1.3
+```
+
+10. show local info
+```
+> kvs local
+scope: 0x1787994613fcb544bcc8ef4191cda243f315ab
+```
+
+11. Read other scope key
+```
+> kvs read -s 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd test_pub
+pub content
+```
 # Example
 
 Your team have a big list of resource id.
