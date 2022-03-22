@@ -3,7 +3,7 @@ use std::net::TcpStream;
 
 use crate::{
     errors::{KVSError, KVSResult},
-    secret::KeyPair,
+    secret::{key_pair, to_pub_key},
     spec::Session,
 };
 
@@ -23,13 +23,13 @@ impl KVSSession {
 
 impl KVSSession {
     pub fn new(stream: TcpStream) -> KVSResult<Self> {
-        let kp = KeyPair::new();
+        let (sk, pk) = key_pair();
         // 通道建立
-        bincode::serialize_into(&stream, &kp.get_pk())?;
-        let pk_bytes: Vec<u8> = bincode::deserialize_from(&stream)?;
-        let shared_secret = kp.to_shared_secret(&pk_bytes)?;
+        bincode::serialize_into(&stream, &pk.as_bytes())?;
+        let pk_bytes: [u8; 32] = bincode::deserialize_from(&stream)?;
 
-        let key = Key::from_slice(shared_secret.as_slice());
+        let shared_secret = sk.diffie_hellman(&to_pub_key(pk_bytes));
+        let key = Key::from_slice(shared_secret.as_bytes());
         let cipher = Aes256Gcm::new(key);
         Ok(KVSSession { stream, cipher })
     }

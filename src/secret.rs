@@ -95,50 +95,33 @@ impl Secret {
     }
 }
 
+use x25519_dalek::{EphemeralSecret, PublicKey as DHPublicKey};
 
-use static_dh_ecdh::ecdh::ecdh::{FromBytes, KeyExchange, PkP384, SkP384, ToBytes, ECDHNISTP384};
+pub fn key_pair() -> (EphemeralSecret, DHPublicKey) {
+    let sk = EphemeralSecret::new(rand_core::OsRng);
+    let pk = DHPublicKey::from(&sk);
+    // let pk = DHPublicKey::from(pk_bytes);
 
-use crate::{utils::sha256};
-
-pub struct KeyPair {
-    sk: SkP384,
-    pk: PkP384,
+    // let ss = EphemeralSecret::from(self.sk).diffie_hellman(&pk);
+    // Ok(ss.as_bytes().to_vec())
+    (sk, pk)
 }
 
-impl KeyPair {
-    pub fn new() -> Self {
-        let mut seed = [0u8; 32];
-        for v in seed.iter_mut() {
-            *v = rand::random();
-        }
-        let sk = ECDHNISTP384::<48>::generate_private_key(seed);
-        let pk = ECDHNISTP384::<48>::generate_public_key(&sk);
-        KeyPair { sk, pk }
-    }
-
-    pub fn get_pk(&self) -> Vec<u8> {
-        Vec::from_iter(self.pk.to_bytes())
-    }
-
-    pub fn to_shared_secret(&self, pk_bytes: &[u8]) -> KVSResult<Vec<u8>> {
-        let pk = PkP384::from_bytes(&pk_bytes)?;
-        let ss =
-            Vec::from_iter(ECDHNISTP384::<48>::generate_shared_secret(&self.sk, &pk)?.to_bytes());
-        Ok(sha256(&ss))
-    }
+pub fn to_pub_key(bytes: [u8; 32]) -> DHPublicKey {
+    DHPublicKey::from(bytes)
 }
 
 #[cfg(test)]
 mod test {
-    use super::KeyPair;
+    use super::key_pair;
 
     #[test]
     fn test_dh() {
-        let a = KeyPair::new();
-        let b = KeyPair::new();
+        let (a_sk, a_pk) = key_pair();
+        let (b_sk, b_pk) = key_pair();
         assert_eq!(
-            a.to_shared_secret(&b.get_pk()).expect("fail"),
-            b.to_shared_secret(&a.get_pk()).expect("fail")
+            a_sk.diffie_hellman(&b_pk).as_bytes(),
+            b_sk.diffie_hellman(&a_pk).as_bytes()
         );
     }
 }

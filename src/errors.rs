@@ -1,7 +1,6 @@
 #[derive(Debug)]
 pub enum KVSError {
     IOError(std::io::Error),
-    CryptoError(static_dh_ecdh::CryptoError),
     AESGcmError(aes_gcm::Error),
     RSAError(rsa::errors::Error),
     TryFromSliceError(std::array::TryFromSliceError),
@@ -19,7 +18,6 @@ impl std::fmt::Display for KVSError {
         use self::KVSError::*;
         match &self {
             IOError(ref e) => write!(f, "IO error: {}", e),
-            CryptoError(ref e) => write!(f, "Crypto Error: {}", e),
             AESGcmError(ref e) => write!(f, "AESGcmError Error: {}", e),
             TryFromSliceError(ref e) => write!(f, "TryFromSlice Error: {}", e),
             LogicError(ref e) => write!(f, "Logic Error: {}", e),
@@ -33,12 +31,6 @@ impl std::fmt::Display for KVSError {
 impl From<std::io::Error> for KVSError {
     fn from(io_error: std::io::Error) -> Self {
         KVSError::IOError(io_error)
-    }
-}
-
-impl From<static_dh_ecdh::CryptoError> for KVSError {
-    fn from(crypto_error: static_dh_ecdh::CryptoError) -> Self {
-        KVSError::CryptoError(crypto_error)
     }
 }
 
