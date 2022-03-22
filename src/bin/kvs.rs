@@ -26,9 +26,9 @@ fn main() {
     tracing_subscriber::registry()
         // Filter spans based on the RUST_LOG env var.
         .with(tracing_subscriber::EnvFilter::new(if kvs_cli.verbose {
-            "error,kvs=debug"
+            "error,key_value_service=debug"
         } else {
-            "error,kvs=info"
+            "error,key_value_service=info"
         }))
         // Send a copy of all spans to stdout as JSON.
         .with(

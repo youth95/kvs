@@ -3,6 +3,7 @@ use std::{
     thread,
     time::Duration,
 };
+use xshell::{cmd, Shell};
 
 use clap::Subcommand;
 
@@ -27,6 +28,13 @@ pub enum Commands {
         reset_jwt_secret: bool,
         #[clap(short, long, help = "start kvs server in bg")]
         detach: bool,
+    },
+    #[clap(long_about = "stop kvs server")]
+    Stop,
+    #[clap(long_about = "restart kvs server")]
+    Restart {
+        #[clap(short, long, help = "reset the jwt_secret")]
+        reset_jwt_secret: bool,
     },
     #[clap(long_about = "Login to kvs")]
     Login,
@@ -108,6 +116,13 @@ impl Commands {
                         .to_vec()
                         .into_iter()
                         .filter(|arg| *arg != "-d" && *arg != "--detach")
+                        .map(|item| {
+                            if item == "restart" {
+                                "start".to_string()
+                            } else {
+                                item
+                            }
+                        })
                         .collect::<Vec<String>>();
 
                     let stdout_file = if let Ok(stdout_file) = std::fs::File::open("kvs.log") {
@@ -122,20 +137,21 @@ impl Commands {
                     } else {
                         std::fs::File::create("kvs.errors.log")?
                     };
-
                     let child =
                         std::process::Command::new(std::env::current_exe()?.display().to_string())
                             .args(detach_command_args)
                             .stdout(stdout_file)
                             .stderr(stderr_file)
-                            .spawn()
-                            .expect("kvs detach process failed to start.");
-                    // recored child pid
-
-                    let kvs_pid_file_path = get_or_create_user_config_dir()?.join("pid");
-                    std::fs::write(kvs_pid_file_path, child.id().to_string())?;
-                    tracing::info!("kvs started PID: {}", child.id());
-                    tracing::info!("The logs saved to ./kvs.log and ./kvs.errors.log");
+                            .spawn();
+                    match child {
+                        Ok(child) => {
+                            let kvs_pid_file_path = get_or_create_user_config_dir()?.join("pid");
+                            std::fs::write(kvs_pid_file_path, child.id().to_string())?;
+                            tracing::info!("kvs started PID: {}", child.id());
+                            tracing::info!("The logs saved to ./kvs.log and ./kvs.errors.log");
+                        }
+                        Err(_) => todo!(),
+                    }
 
                     return Ok(());
                 }
@@ -157,6 +173,26 @@ impl Commands {
                         }
                     }
                 }
+            }
+            Commands::Stop => {
+                let kvs_pid_file_path = get_or_create_user_config_dir()?.clone().join("pid");
+                if *&kvs_pid_file_path.exists() {
+                    let pid = std::fs::read_to_string(&kvs_pid_file_path)?;
+                    tracing::info!("kvs PID: {}", pid);
+                    let sh = Shell::new().unwrap();
+                    cmd!(sh, "kill -9 {pid}").run().unwrap();
+                    std::fs::remove_file(kvs_pid_file_path).unwrap();
+                } else {
+                    tracing::error!("kvs server not started")
+                }
+            }
+            Commands::Restart { reset_jwt_secret } => {
+                Commands::Stop.run(&Some(repository.clone()))?;
+                Commands::Start {
+                    reset_jwt_secret: *reset_jwt_secret,
+                    detach: true,
+                }
+                .run(&Some(repository.clone()))?;
             }
             Commands::Login => {
                 let (_, user_token_file_path) = get_or_create_token(repository, true)?;

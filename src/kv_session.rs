@@ -27,9 +27,9 @@ impl KVSSession {
         // 通道建立
         bincode::serialize_into(&stream, &kp.get_pk())?;
         let pk_bytes: Vec<u8> = bincode::deserialize_from(&stream)?;
-        let shared_scret = kp.to_shared_secret(&pk_bytes)?;
+        let shared_secret = kp.to_shared_secret(&pk_bytes)?;
 
-        let key = Key::from_slice(shared_scret.as_slice());
+        let key = Key::from_slice(shared_secret.as_slice());
         let cipher = Aes256Gcm::new(key);
         Ok(KVSSession { stream, cipher })
     }

@@ -89,6 +89,16 @@ scope: 0x1787994613fcb544bcc8ef4191cda243f315ab
 > kvs read -s 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd test_pub
 pub content
 ```
+
+12. Restart the kvs Server 
+```
+> kvs restart
+```
+
+13. Stop the kvs Server
+```
+> kvs stop
+```
 # Example
 
 Your team have a big list of resource id.
@@ -134,6 +144,10 @@ kvs cat important_resource_urls | transform
 ```
 
 # Road Map
-* [*] add `set` and `get` command to config some value in client local
 * [ ] add `upload` command to upload all file in current directory and use the relative directory as key.
-* [ ] add `set` command to set the config in client local.
+* [x] add `restart` command to restart the server
+* [x] add `stop` command to stop the server
+* [ ] add server config to config the store backend
+* [x] add `set` and `get` command to config some value in client local
+* [x] add `set` command to set the config in client local.
+* [x] add `--file` option in create and upload command.
