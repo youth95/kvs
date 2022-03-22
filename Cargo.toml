@@ -6,7 +6,7 @@ keywords = ["key", "value", "cli"]
 license = "Apache-2.0"
 name = "key_value_service"
 repository = "https://github.com/youth95/kvs"
-version = "0.1.5"
+version = "0.1.6"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -34,6 +34,7 @@ walkdir = "2.3.2"
 x25519-dalek = "1.2.0"
 xshell = "0.2.1"
 remove_dir_all = "0.7.0"
+relative-path = "1.7.0"
 
 [profile.release]
 codegen-units = 1

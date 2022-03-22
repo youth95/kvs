@@ -1,6 +1,8 @@
-# [WIP] KVS
+# KVS
 
 Key Value Services is a cli tools that help to you create your Key-Value store services.
+
+
 
 # Motivation
 
@@ -12,6 +14,10 @@ I want to create a content sharing tool that is managed by only one person and r
 ```bash
 cargo install key_value_service
 ```
+
+# Warning
+
+This project is still in the early stage of development and is only used as a development tool. Do not use it for data storage in the production environment. If you have this requirement, I recommend that you use [redis](https://github.com/redis/redis). Some APIs will undergo destructive changes without notice.
 
 # Usage
 
@@ -144,11 +150,21 @@ kvs cat important_resource_urls | transform
 ```
 
 # Road Map
-* [ ] add `upload` command to upload all file in current directory and use the relative directory as key.
-* [ ] add server config to config the store backend.
+
+Community
+* [x] add `sync` command to sync all file in one directory and use the relative directory as key.
 * [x] add `list` command to list all key meta in your scope.
 * [x] add `restart` command to restart the server.
 * [x] add `stop` command to stop the server.
 * [x] add `set` and `get` command to config some value in client local.
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.
+* [ ] add server config to config the store backend.
+* [ ] add the same option in `sync` command look like `create` `update`
+* [ ] add unit test and docs.
+* [ ] add github action to release the bin file.
+
+Commercial
+* [ ] add the p2p in share key progress.
+* [ ] Build a free central storage node.
+

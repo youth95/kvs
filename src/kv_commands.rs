@@ -86,7 +86,10 @@ pub enum Commands {
     #[clap(
         long_about = "Upload all file in current directory and use the relative directory as key"
     )]
-    Sync,
+    Sync {
+        #[clap(help = "Dir path", default_value = ".")]
+        path: String,
+    },
 
     #[clap(long_about = "list all keys info")]
     List,
@@ -355,9 +358,9 @@ impl Commands {
 
                 println!("scope: {}", scope);
             }
-            Commands::Sync => {
+            Commands::Sync { path } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
-                let all_files_meta = LocalFileMeta::get_all_files_meta()?;
+                let all_files_meta = LocalFileMeta::get_all_files_meta(path)?;
                 tracing::info!("analysis remote files");
                 let mut session = get_kvs_session()?;
                 let remote_key_meta_list = ListAction { token }.request(&mut session)?;
@@ -368,35 +371,58 @@ impl Commands {
                 );
                 let need_create_keys = all_files_meta
                     .iter()
-                    .filter(|meta| !remote_key_meta_mapper.contains_key(&meta.path))
+                    .filter(|meta| !remote_key_meta_mapper.contains_key(&meta.name))
                     .collect::<Vec<_>>();
+
+                if need_create_keys.len() > 0 {
+                    tracing::info!("need create keys {}", need_create_keys.len());
+
+                    need_create_keys
+                        .iter()
+                        .progress_count(need_create_keys.len() as u64)
+                        .for_each(|meta| {
+                            Commands::Create {
+                                key: meta.name.to_string(),
+                                value: None,
+                                file: Some(meta.path.to_string()),
+                                public: false,
+                                value_type: "bin".to_string(),
+                            }
+                            .run(&Some(repository.clone()))
+                            .unwrap_or_else(|error| tracing::error!("{:?}", error));
+                        });
+                    tracing::info!("created {} keys successfully", need_create_keys.len());
+                }
                 let need_update_keys = all_files_meta
                     .iter()
                     .filter(|meta| {
-                        remote_key_meta_mapper.contains_key(&meta.path)
+                        remote_key_meta_mapper.contains_key(&meta.name)
                             && remote_key_meta_mapper
-                                .get(&meta.path)
+                                .get(&meta.name)
                                 .unwrap()
                                 .original_hash
                                 != meta.original_hash
                     })
                     .collect::<Vec<_>>();
-                tracing::info!("need create files {}", need_create_keys.len());
-                tracing::info!("need update files {}", need_update_keys.len());
-                need_create_keys
-                    .iter()
-                    .progress_count(need_create_keys.len() as u64)
-                    .for_each(|meta| {
-                        Commands::Create {
-                            key: meta.name.to_string(),
-                            value: None,
-                            file: Some(meta.path.to_string()),
-                            public: false,
-                            value_type: "bin".to_string(),
-                        }
-                        .run(&Some(repository.clone()))
-                        .unwrap_or_else(|error| tracing::error!("{:?}", error));
-                    });
+                if need_update_keys.len() > 0 {
+                    tracing::info!("need update files {}", need_update_keys.len());
+                    need_update_keys
+                        .iter()
+                        .progress_count(need_update_keys.len() as u64)
+                        .for_each(|meta| {
+                            Commands::Update {
+                                key: meta.name.to_string(),
+                                value: None,
+                                file: Some(meta.path.to_string()),
+                                public: false,
+                                value_type: "bin".to_string(),
+                            }
+                            .run(&Some(repository.clone()))
+                            .unwrap_or_else(|error| tracing::error!("{:?}", error));
+                        });
+                    tracing::info!("upload {} keys successfully", need_update_keys.len());
+                }
+                tracing::info!("sync finish")
             }
             Commands::List => {
                 let (token, _) = get_or_create_token(&repository, false)?;

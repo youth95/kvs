@@ -76,11 +76,11 @@ impl Debug for LocalFileMeta {
 }
 
 impl LocalFileMeta {
-    pub fn get_all_files_meta() -> KVSResult<Vec<LocalFileMeta>> {
-        let current_dir = std::env::current_dir()?;
-        let current_dir_path = current_dir.display().to_string();
-
-        let files_path = WalkDir::new(current_dir)
+    pub fn get_all_files_meta(target_path: &str) -> KVSResult<Vec<LocalFileMeta>> {
+        let cwd = std::env::current_dir()?;
+        let target_path = relative_path::RelativePath::new(target_path);
+        let target_path = target_path.to_logical_path(cwd);
+        let files_path = WalkDir::new(&target_path)
             .into_iter()
             .filter(|entry| entry.is_ok())
             .map(|entry| entry.unwrap())
@@ -89,7 +89,9 @@ impl LocalFileMeta {
                 let entry_path = entry.path().display().to_string();
                 (
                     entry_path.clone(),
-                    entry_path.clone().replace(&current_dir_path, ""),
+                    entry_path
+                        .clone()
+                        .replace(&target_path.as_path().display().to_string(), ""),
                 )
             })
             .collect::<Vec<_>>();
