@@ -1,6 +1,7 @@
+use indicatif::ProgressIterator;
 use std::{
+    collections::HashMap,
     net::{TcpListener, TcpStream},
-    thread,
     time::Duration,
 };
 use xshell::{cmd, Shell};
@@ -13,8 +14,9 @@ use crate::{
         RemoteVersionAction, UpdateAction,
     },
     config::{
-        get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_secret,
-        get_or_create_token, get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
+        get_or_create_data_dir, get_or_create_jwt_secret, get_or_create_repository_config,
+        get_or_create_secret, get_or_create_token, get_or_create_user_config_dir,
+        get_or_create_user_config_kv_dir,
     },
     errors::{KVSError, KVSResult},
     kv_server::service,
@@ -84,7 +86,7 @@ pub enum Commands {
     #[clap(
         long_about = "Upload all file in current directory and use the relative directory as key"
     )]
-    Upload,
+    Sync,
 
     #[clap(long_about = "list all keys info")]
     List,
@@ -99,6 +101,9 @@ pub enum Commands {
 
     #[clap(long_about = "Get client config")]
     Get { key: String },
+
+    #[clap(long_about = "Remote data dir")]
+    Clear,
 }
 
 impl Commands {
@@ -171,6 +176,10 @@ impl Commands {
 
                 let listener = TcpListener::bind(repository)?;
                 tracing::info!("starting with {} successfully!", repository);
+                let pool = rayon::ThreadPoolBuilder::new()
+                    .num_threads(8)
+                    .build()
+                    .unwrap();
                 for stream in listener.incoming() {
                     match stream {
                         Err(e) => {
@@ -180,7 +189,7 @@ impl Commands {
                             let jwt_secret = jwt_secret.clone();
                             stream.set_read_timeout(Some(Duration::from_millis(1000)))?;
                             let mut session = KVSSession::new(stream)?;
-                            thread::spawn(move || service(&mut session, &jwt_secret));
+                            pool.install(move || service(&mut session, &jwt_secret));
                         }
                     }
                 }
@@ -346,8 +355,48 @@ impl Commands {
 
                 println!("scope: {}", scope);
             }
-            Commands::Upload => {
-                LocalFileMeta::get_all_files_meta().unwrap();
+            Commands::Sync => {
+                let (token, _) = get_or_create_token(&repository, false)?;
+                let all_files_meta = LocalFileMeta::get_all_files_meta()?;
+                tracing::info!("analysis remote files");
+                let mut session = get_kvs_session()?;
+                let remote_key_meta_list = ListAction { token }.request(&mut session)?;
+                let remote_key_meta_mapper = HashMap::<String, &KeyMeta>::from_iter(
+                    remote_key_meta_list
+                        .iter()
+                        .map(|meta| (meta.name.clone(), meta)),
+                );
+                let need_create_keys = all_files_meta
+                    .iter()
+                    .filter(|meta| !remote_key_meta_mapper.contains_key(&meta.path))
+                    .collect::<Vec<_>>();
+                let need_update_keys = all_files_meta
+                    .iter()
+                    .filter(|meta| {
+                        remote_key_meta_mapper.contains_key(&meta.path)
+                            && remote_key_meta_mapper
+                                .get(&meta.path)
+                                .unwrap()
+                                .original_hash
+                                != meta.original_hash
+                    })
+                    .collect::<Vec<_>>();
+                tracing::info!("need create files {}", need_create_keys.len());
+                tracing::info!("need update files {}", need_update_keys.len());
+                need_create_keys
+                    .iter()
+                    .progress_count(need_create_keys.len() as u64)
+                    .for_each(|meta| {
+                        Commands::Create {
+                            key: meta.name.to_string(),
+                            value: None,
+                            file: Some(meta.path.to_string()),
+                            public: false,
+                            value_type: "bin".to_string(),
+                        }
+                        .run(&Some(repository.clone()))
+                        .unwrap_or_else(|error| tracing::error!("{:?}", error));
+                    });
             }
             Commands::List => {
                 let (token, _) = get_or_create_token(&repository, false)?;
@@ -356,6 +405,10 @@ impl Commands {
                 key_meta_list.iter().for_each(|meta| {
                     println!("{} {} ", meta.name, meta.size);
                 });
+            }
+            Commands::Clear => {
+                let data_dir = get_or_create_data_dir()?;
+                remove_dir_all::remove_dir_all(data_dir)?;
             }
         };
         Ok(())

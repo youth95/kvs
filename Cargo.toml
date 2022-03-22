@@ -33,6 +33,7 @@ version = "3.0.0"
 walkdir = "2.3.2"
 x25519-dalek = "1.2.0"
 xshell = "0.2.1"
+remove_dir_all = "0.7.0"
 
 [profile.release]
 codegen-units = 1

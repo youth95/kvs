@@ -59,6 +59,7 @@ impl KVSAction<Vec<KeyMeta>> for ListAction {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct LocalFileMeta {
+    pub name: String,
     pub path: String,
     pub original_hash: Vec<u8>,
     pub size: u64,
@@ -92,16 +93,17 @@ impl LocalFileMeta {
                 )
             })
             .collect::<Vec<_>>();
-        tracing::info!("read local files");
+        tracing::info!("analysis local files");
         Ok(files_path
             .par_iter()
             .progress_count(files_path.len() as u64)
             .map(|(entry_path, path)| {
                 let bytes = std::fs::read(entry_path).unwrap();
                 LocalFileMeta {
-                    path: path.clone(),
+                    name: path.clone(),
                     original_hash: sha256(&bytes),
                     size: bytes.len() as u64,
+                    path: entry_path.to_string(),
                 }
             })
             .collect::<Vec<_>>())
@@ -112,7 +114,8 @@ impl LocalFileMeta {
 mod test {
     use crate::{
         config::get_or_create_token,
-        spec::{KVSAction, Session}, errors::KVSResult,
+        errors::KVSResult,
+        spec::{KVSAction, Session},
     };
 
     pub struct MockSession;
