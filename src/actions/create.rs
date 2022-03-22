@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -18,6 +20,14 @@ pub struct KeyMeta {
     pub owner: Vec<u8>,
     pub name: String,
     pub rand: Option<Vec<u8>>,
+    pub original_hash: Vec<u8>,
+}
+
+impl KeyMeta {
+    pub fn from_file<P: AsRef<Path>>(meta_file_path: P) -> KVSResult<KeyMeta> {
+        let meta = std::fs::read(meta_file_path)?;
+        KVSSession::to::<KeyMeta>(&meta)
+    }
 }
 
 // impl KeyMeta {
@@ -45,8 +55,7 @@ impl KVSAction<()> for CreateAction {
         } = self;
         let KVSToken { id, .. } = token;
         meta.owner = id.clone();
-
-        let id_str = ["0x", &to_u8str(&token.id)].concat();
+        let id_str = token.get_addr();
         let o_key = key.clone();
         let key = to_u8str(&sha256(key.as_bytes()));
         let data_dir_path = get_or_create_data_dir()?;

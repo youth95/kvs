@@ -23,6 +23,12 @@ pub struct KVSToken {
     pub sign: Vec<u8>, // len 32
 }
 
+impl KVSToken {
+    pub fn get_addr(&self) -> String {
+        format!("0x{}", to_u8str(&self.id))
+    }
+}
+
 impl KVSAction<KVSToken> for FetchTokenAction {
     fn serve(&mut self, session: &mut impl Session) -> KVSResult<KVSToken> {
         let jwt_secret = get_or_create_jwt_secret(false)?;

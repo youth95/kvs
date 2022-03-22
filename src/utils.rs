@@ -19,7 +19,7 @@ pub fn sgin(payload: &[u8]) -> Vec<u8> {
 pub fn to_u8str(bytes: &[u8]) -> String {
     bytes
         .iter()
-        .map(|x| format!("{:x}", x))
+        .map(|x| format!("{:02x}", x))
         .collect::<Vec<String>>()
         .join("")
 }
@@ -27,4 +27,16 @@ pub fn to_u8str(bytes: &[u8]) -> String {
 pub fn to_addr(payload: &[u8]) -> String {
     let data = sgin(&ripemd_160(payload));
     format!("0x{}", to_u8str(&data))
+}
+
+#[cfg(test)]
+mod test {
+    use super::to_u8str;
+
+    #[test]
+    fn test_to_u8str() {
+        assert_eq!(to_u8str(&vec![0]), "00");
+        assert_eq!(to_u8str(&vec![0xff]), "ff");
+        assert_eq!(to_u8str(&vec![1]), "01");
+    }
 }

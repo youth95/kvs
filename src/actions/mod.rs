@@ -1,6 +1,7 @@
 mod create;
 mod delete;
 mod fetch_token;
+mod list;
 mod read;
 mod remote_version;
 mod update;
@@ -8,6 +9,7 @@ mod update;
 pub use create::{CreateAction, KeyMeta};
 pub use delete::DeleteAction;
 pub use fetch_token::{FetchTokenAction, KVSToken};
+pub use list::{ListAction, LocalFileMeta};
 pub use read::{CatReply, ReadAction};
 pub use remote_version::RemoteVersionAction;
 pub use update::UpdateAction;
@@ -22,4 +24,5 @@ pub enum Actions {
     DeleteAction(DeleteAction),
     UpdateAction(UpdateAction),
     RemoteVersionAction(RemoteVersionAction),
+    ListAction(ListAction),
 }

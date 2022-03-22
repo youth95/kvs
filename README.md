@@ -145,9 +145,10 @@ kvs cat important_resource_urls | transform
 
 # Road Map
 * [ ] add `upload` command to upload all file in current directory and use the relative directory as key.
-* [x] add `restart` command to restart the server
-* [x] add `stop` command to stop the server
-* [ ] add server config to config the store backend
-* [x] add `set` and `get` command to config some value in client local
+* [ ] add server config to config the store backend.
+* [x] add `list` command to list all key meta in your scope.
+* [x] add `restart` command to restart the server.
+* [x] add `stop` command to stop the server.
+* [x] add `set` and `get` command to config some value in client local.
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.

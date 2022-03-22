@@ -8,7 +8,10 @@ use xshell::{cmd, Shell};
 use clap::Subcommand;
 
 use crate::{
-    actions::{CreateAction, DeleteAction, KeyMeta, ReadAction, RemoteVersionAction, UpdateAction},
+    actions::{
+        CreateAction, DeleteAction, KeyMeta, ListAction, LocalFileMeta, ReadAction,
+        RemoteVersionAction, UpdateAction,
+    },
     config::{
         get_or_create_jwt_secret, get_or_create_repository_config, get_or_create_secret,
         get_or_create_token, get_or_create_user_config_dir, get_or_create_user_config_kv_dir,
@@ -17,7 +20,7 @@ use crate::{
     kv_server::service,
     kv_session::KVSSession,
     spec::KVSAction,
-    utils::to_addr,
+    utils::{sha256, to_addr},
 };
 
 #[derive(Debug, Subcommand, Clone)]
@@ -77,6 +80,14 @@ pub enum Commands {
     },
     #[clap(long_about = "Delete key")]
     Delete { key: String },
+
+    #[clap(
+        long_about = "Upload all file in current directory and use the relative directory as key"
+    )]
+    Upload,
+
+    #[clap(long_about = "list all keys info")]
+    List,
 
     #[clap(long_about = "Show remote info")]
     Remote,
@@ -232,13 +243,14 @@ impl Commands {
                 CreateAction {
                     token: token.clone(),
                     key: key.to_string(),
-                    value,
+                    value: value.to_vec(),
                     meta: KeyMeta {
                         mime: value_type.to_string(),
                         size,
                         owner,
                         name: key.to_string(),
                         rand,
+                        original_hash: sha256(&value[..]),
                     },
                 }
                 .request(&mut session)?
@@ -264,7 +276,7 @@ impl Commands {
                         }
                     },
                 };
-                let size = value.len() as u64;
+                let size = *&value.len() as u64;
                 let owner = token.id.clone();
 
                 let rand = if *public == false {
@@ -275,13 +287,14 @@ impl Commands {
                 UpdateAction {
                     token: token.clone(),
                     key: key.to_string(),
-                    value,
+                    value: value.to_vec(),
                     meta: KeyMeta {
                         mime: value_type.to_string(),
                         size,
                         owner,
                         name: key.to_string(),
                         rand,
+                        original_hash: sha256(&value[..]),
                     },
                 }
                 .request(&mut session)?;
@@ -332,6 +345,17 @@ impl Commands {
                 let scope = to_addr(&secret.pub_key_bits);
 
                 println!("scope: {}", scope);
+            }
+            Commands::Upload => {
+                LocalFileMeta::get_all_files_meta().unwrap();
+            }
+            Commands::List => {
+                let (token, _) = get_or_create_token(&repository, false)?;
+                let mut session = get_kvs_session()?;
+                let key_meta_list = ListAction { token }.request(&mut session)?;
+                key_meta_list.iter().for_each(|meta| {
+                    println!("{} {} ", meta.name, meta.size);
+                });
             }
         };
         Ok(())

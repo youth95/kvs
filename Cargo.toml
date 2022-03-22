@@ -17,9 +17,11 @@ bincode = "1.3.3"
 chrono = "0.4.19"
 clap = {version = "3.1.6", features = ["derive"]}
 dirs = "4.0.0"
+indicatif = {version = "*", features = ["rayon"]}
 mime = "0.3.16"
 pem = "1.0.2"
 rand = "0.8.5"
+rayon = "1.5.1"
 ripemd = "0.1.1"
 rsa = "0.5.0"
 serde = {version = "1.0", features = ["derive"]}
@@ -28,6 +30,7 @@ static-dh-ecdh = "0.1.1"
 tracing = "0.1"
 tracing-subscriber = {version = "0.3.9", features = ["env-filter"]}
 version = "3.0.0"
+walkdir = "2.3.2"
 xshell = "0.2.1"
 
 [profile.release]

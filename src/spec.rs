@@ -11,7 +11,6 @@ pub trait Session {
     where
         T: serde::Serialize;
 }
-
 pub trait KVSAction<R: serde::Serialize> {
     fn serve(&mut self, session: &mut impl Session) -> KVSResult<R>;
     fn request(&mut self, session: &mut impl Session) -> KVSResult<R>;
@@ -27,11 +26,13 @@ pub trait KVSAction<R: serde::Serialize> {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum KVPayloadResult<T> {
-    Err(String),
-    Ok(T),
-}
+// #[derive(Serialize, Deserialize, Debug, Clone)]
+// pub enum KVPayloadResult<T> {
+//     Err(String),
+//     Ok(T),
+// }
+
+pub type KVPayloadResult<T> = Result<T, String>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[repr(u8)]
