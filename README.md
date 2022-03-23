@@ -159,11 +159,13 @@ Community
 * [x] add `set` and `get` command to config some value in client local.
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.
-* [ ] add server config to config the store backend.
 * [x] add the same option in `sync` command look like `create` `update`
+* [ ] add server config to config the store backend.
 * [ ] add unit test and docs.
-* [ ] add github action to release the bin file.
+* [ ] ~~add github action to release the bin file.~~
 * [ ] refactor the `Remote Action` model.
+* [ ] add `upgrade` command to sync the remote `kvs` cli to client local.
+* [ ] refactor the `aes session` to be a `aes stream`.
 
 Commercial
 * [ ] add the p2p in share key progress.
