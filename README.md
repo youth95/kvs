@@ -105,8 +105,9 @@ pub content
 ```
 > kvs stop
 ```
-# Example
+# Examples
 
+## Case1 sync info in one team
 Your team have a big list of resource id.
 
 ```bash
@@ -149,6 +150,12 @@ kvs create important_resource_urls -f important_resource_urls.txt
 kvs read important_resource_urls | transform
 ```
 
+## Case1 sync info in public
+
+```bash
+curl https://xxx/a.json | json "important" | kvs create important -f -p
+kvs read important -s your_scope
+```
 # Road Map
 
 Community
@@ -159,7 +166,11 @@ Community
 * [x] add `set` and `get` command to config some value in client local.
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.
-* [x] add the same option in `sync` command look like `create` `update`
+* [x] add the same option in `sync` command look like `create` `update`.
+
+
+* [ ] fix `--file` option in create and upload command can be not give the filename, kvs will use the stdin content as value if you do that.
+* [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add server config to config the store backend.
 * [ ] add unit test and docs.
 * [ ] ~~add github action to release the bin file.~~
