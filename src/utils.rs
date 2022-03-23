@@ -25,7 +25,7 @@ pub fn to_u8str(bytes: &[u8]) -> String {
 }
 
 pub fn to_addr(payload: &[u8]) -> String {
-    let data = sgin(&ripemd_160(payload));
+    let data = sgin(payload);
     format!("0x{}", to_u8str(&data))
 }
 

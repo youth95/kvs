@@ -127,11 +127,11 @@ mod test {
             todo!()
         }
 
-        fn write_vec(&mut self, payload: &[u8]) -> KVSResult<()> {
+        fn write_vec(&mut self, _: &[u8]) -> KVSResult<()> {
             todo!()
         }
 
-        fn write<T: ?Sized>(&mut self, payload: &T) -> KVSResult<()>
+        fn write<T: ?Sized>(&mut self, _: &T) -> KVSResult<()>
         where
             T: serde::Serialize,
         {

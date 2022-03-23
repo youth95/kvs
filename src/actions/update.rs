@@ -12,13 +12,6 @@ use aes_gcm::{aead::Aead, Aes256Gcm, Key, NewAead, Nonce};
 
 use super::{Actions, KVSToken, KeyMeta};
 
-// impl KeyMeta {
-//     pub fn mime(&self) -> KVSResult<mime::Mime> {
-//         let result = self.mime.parse()?;
-//         Ok(result)
-//     }
-// }
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct UpdateAction {
     pub token: KVSToken,

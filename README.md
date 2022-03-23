@@ -146,7 +146,7 @@ Granted, there are many ways to share it. But you can fast finish it if you use 
 kvs create important_resource_urls -f important_resource_urls.txt
 
 # and then, other team member can use it.
-kvs cat important_resource_urls | transform
+kvs read important_resource_urls | transform
 ```
 
 # Road Map
@@ -166,6 +166,7 @@ Community
 * [ ] refactor the `Remote Action` model.
 * [ ] add `upgrade` command to sync the remote `kvs` cli to client local.
 * [ ] refactor the `aes session` to be a `aes stream`.
+* [ ] config docker container.
 
 Commercial
 * [ ] add the p2p in share key progress.
