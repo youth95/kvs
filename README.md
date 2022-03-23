@@ -160,9 +160,10 @@ Community
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.
 * [ ] add server config to config the store backend.
-* [ ] add the same option in `sync` command look like `create` `update`
+* [x] add the same option in `sync` command look like `create` `update`
 * [ ] add unit test and docs.
 * [ ] add github action to release the bin file.
+* [ ] refactor the `Remote Action` model.
 
 Commercial
 * [ ] add the p2p in share key progress.

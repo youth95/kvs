@@ -27,16 +27,16 @@ use crate::{
 
 #[derive(Debug, Subcommand, Clone)]
 pub enum Commands {
-    #[clap(long_about = "start kvs server")]
+    #[clap(long_about = "Start kvs server")]
     Start {
         #[clap(short, long, help = "reset the jwt_secret")]
         reset_jwt_secret: bool,
         #[clap(short, long, help = "start kvs server in bg")]
         detach: bool,
     },
-    #[clap(long_about = "stop kvs server")]
+    #[clap(long_about = "Stop kvs server")]
     Stop,
-    #[clap(long_about = "restart kvs server")]
+    #[clap(long_about = "Restart kvs server")]
     Restart {
         #[clap(short, long, help = "reset the jwt_secret")]
         reset_jwt_secret: bool,
@@ -77,7 +77,7 @@ pub enum Commands {
     #[clap(long_about = "Read key content")]
     Read {
         key: String,
-        #[clap(short, long, help = "in other scope")]
+        #[clap(short, long, help = "In other scope")]
         scope: Option<String>,
     },
     #[clap(long_about = "Delete key")]
@@ -89,9 +89,12 @@ pub enum Commands {
     Sync {
         #[clap(help = "Dir path", default_value = ".")]
         path: String,
+
+        #[clap(short, long, help = "As public key")]
+        public: bool,
     },
 
-    #[clap(long_about = "list all keys info")]
+    #[clap(long_about = "List all keys info")]
     List,
 
     #[clap(long_about = "Show remote info")]
@@ -358,7 +361,7 @@ impl Commands {
 
                 println!("scope: {}", scope);
             }
-            Commands::Sync { path } => {
+            Commands::Sync { path, public } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let all_files_meta = LocalFileMeta::get_all_files_meta(path)?;
                 tracing::info!("analysis remote files");
@@ -385,7 +388,7 @@ impl Commands {
                                 key: meta.name.to_string(),
                                 value: None,
                                 file: Some(meta.path.to_string()),
-                                public: false,
+                                public: *public,
                                 value_type: "bin".to_string(),
                             }
                             .run(&Some(repository.clone()))
@@ -395,13 +398,13 @@ impl Commands {
                 }
                 let need_update_keys = all_files_meta
                     .iter()
-                    .filter(|meta| {
-                        remote_key_meta_mapper.contains_key(&meta.name)
-                            && remote_key_meta_mapper
-                                .get(&meta.name)
-                                .unwrap()
-                                .original_hash
-                                != meta.original_hash
+                    .filter(|meta| match remote_key_meta_mapper.get(&meta.name) {
+                        Some(target) => {
+                            let no_same_hash = target.original_hash != meta.original_hash;
+                            let no_same_public = target.rand.is_none() != *public;
+                            no_same_hash || no_same_public
+                        }
+                        None => false,
                     })
                     .collect::<Vec<_>>();
                 if need_update_keys.len() > 0 {
@@ -414,7 +417,7 @@ impl Commands {
                                 key: meta.name.to_string(),
                                 value: None,
                                 file: Some(meta.path.to_string()),
-                                public: false,
+                                public: *public,
                                 value_type: "bin".to_string(),
                             }
                             .run(&Some(repository.clone()))
@@ -429,7 +432,16 @@ impl Commands {
                 let mut session = get_kvs_session()?;
                 let key_meta_list = ListAction { token }.request(&mut session)?;
                 key_meta_list.iter().for_each(|meta| {
-                    println!("{} {} ", meta.name, meta.size);
+                    println!(
+                        "{} {}\t{}",
+                        if meta.rand.is_none() {
+                            "public"
+                        } else {
+                            "private"
+                        },
+                        meta.size,
+                        meta.name,
+                    );
                 });
             }
             Commands::Clear => {
