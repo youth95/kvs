@@ -1,6 +1,7 @@
 use indicatif::ProgressIterator;
 use std::{
     collections::HashMap,
+    io::Read,
     net::{TcpListener, TcpStream},
     time::Duration,
 };
@@ -50,7 +51,7 @@ pub enum Commands {
         value: Option<String>,
 
         #[clap(short, long, help = "Use file content")]
-        file: Option<String>,
+        file: Option<Option<String>>,
 
         #[clap(short, long, help = "As public key")]
         public: bool,
@@ -65,7 +66,7 @@ pub enum Commands {
         value: Option<String>,
 
         #[clap(short, long, help = "Use file content")]
-        file: Option<String>,
+        file: Option<Option<String>>,
 
         #[clap(short, long, help = "As public key")]
         public: bool,
@@ -237,7 +238,14 @@ impl Commands {
                 let value = match value {
                     Some(value) => value.as_bytes().to_vec(),
                     None => match file {
-                        Some(file_path) => std::fs::read(file_path)?,
+                        Some(file_path) => match file_path {
+                            Some(file_path) => std::fs::read(file_path)?,
+                            None => {
+                                let mut buf = Vec::<u8>::new();
+                                std::io::stdin().read_to_end(&mut buf)?;
+                                buf
+                            }
+                        },
                         None => {
                             return Err(KVSError::LogicError(
                                 "value params and file option can not to None in same time"
@@ -282,7 +290,14 @@ impl Commands {
                 let value = match value {
                     Some(value) => value.as_bytes().to_vec(),
                     None => match file {
-                        Some(file_path) => std::fs::read(file_path)?,
+                        Some(file_path) => match file_path {
+                            Some(file_path) => std::fs::read(file_path)?,
+                            None => {
+                                let mut buf = Vec::<u8>::new();
+                                std::io::stdin().read_to_end(&mut buf)?;
+                                buf
+                            }
+                        },
                         None => {
                             return Err(KVSError::LogicError(
                                 "value params and file option can not to None in same time"
@@ -387,7 +402,7 @@ impl Commands {
                             Commands::Create {
                                 key: meta.name.to_string(),
                                 value: None,
-                                file: Some(meta.path.to_string()),
+                                file: Some(Some(meta.path.to_string())),
                                 public: *public,
                                 value_type: "bin".to_string(),
                             }
@@ -416,7 +431,7 @@ impl Commands {
                             Commands::Update {
                                 key: meta.name.to_string(),
                                 value: None,
-                                file: Some(meta.path.to_string()),
+                                file: Some(Some(meta.path.to_string())),
                                 public: *public,
                                 value_type: "bin".to_string(),
                             }
