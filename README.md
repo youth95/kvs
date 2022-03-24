@@ -169,7 +169,7 @@ Community
 * [x] add the same option in `sync` command look like `create` `update`.
 
 
-* [*] fix `--file` option in create and upload command can be not give the filename, kvs will use the stdin content as value if you do that.
+* [x] fix `--file` option in create and upload command can be not give the filename, kvs will use the stdin content as value if you do that.
 * [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add server config to config the store backend.
 * [ ] add unit test and docs.
