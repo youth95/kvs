@@ -35,7 +35,7 @@ jobs:
       uses: actions/upload-artifact@v3.0.0
       with:
         name: windows
-        path: ./target/release/kvs
+        path: ./target/release/kvs.exe
   build-mac:
     runs-on: macOS-latest
     steps:
