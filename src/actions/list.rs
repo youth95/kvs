@@ -111,39 +111,3 @@ impl LocalFileMeta {
             .collect::<Vec<_>>())
     }
 }
-
-#[cfg(test)]
-mod test {
-    use crate::{
-        config::get_or_create_token,
-        errors::KVSResult,
-        spec::{KVSAction, Session},
-    };
-
-    pub struct MockSession;
-
-    impl Session for MockSession {
-        fn read_vec(&mut self) -> KVSResult<Vec<u8>> {
-            todo!()
-        }
-
-        fn write_vec(&mut self, _: &[u8]) -> KVSResult<()> {
-            todo!()
-        }
-
-        fn write<T: ?Sized>(&mut self, _: &T) -> KVSResult<()>
-        where
-            T: serde::Serialize,
-        {
-            todo!()
-        }
-    }
-
-    use super::ListAction;
-
-    #[test]
-    fn list_action_serve() {
-        let (token, _) = get_or_create_token(&"".to_string(), false).unwrap();
-        ListAction { token }.serve(&mut MockSession).unwrap();
-    }
-}
