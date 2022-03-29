@@ -53,8 +53,11 @@ jobs:
     needs: [build-linux, build-windows,build-mac]
     runs-on: ubuntu-latest
     steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          path: artifacts
       - name: Upload artifacts & release assets
-#         uses: actions/download-artifact@v3
         uses: nanoufo/action-upload-artifacts-and-release-assets@v1.4
         with:
           path: artifacts
