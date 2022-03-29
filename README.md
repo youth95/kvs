@@ -105,6 +105,11 @@ pub content
 ```
 > kvs stop
 ```
+
+14. remove all keys
+```
+> kvs list | awk -F '\t' '{print "kvs delete " $2}' | bash
+```
 # Examples
 
 ## Case1 sync info in one team
