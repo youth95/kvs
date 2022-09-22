@@ -69,7 +69,7 @@ jobs:
           # GitHub secret token
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           # Git tag (for automatic releases)
-          automatic_release_tag: true
+          automatic_release_tag: "${{ env.ReleaseVersion }}"
           # Should this release be marked as a draft?
           draft: true
           # Assets to upload to the release
