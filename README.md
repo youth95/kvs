@@ -200,13 +200,12 @@ Community
 * [x] add `--file` option in create and upload command.
 * [x] add the same option in `sync` command look like `create` `update`.
 * [x] append show public key in `kvs local`.
+* [x] add `kvs de` command to decrypt some content. use local private key by default.
+* [x] add `kvs en` command to encrypt some content. use local public key by default.
 
 * [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add `kvs set whitelist` command to set a whitelist.
 * [ ] add `kvs search` command to search some content in different repository.
-* [ ] add `kvs de` command to decrypt some content. use local private key by default.
-* [ ] add `kvs en` command to encrypt some content. use local public key by default.
-
 
 
 

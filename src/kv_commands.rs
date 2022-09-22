@@ -22,6 +22,7 @@ use crate::{
     errors::{KVSError, KVSResult},
     kv_server::service,
     kv_session::KVSSession,
+    secret::Secret,
     spec::KVSAction,
     utils::{sha256, to_addr},
 };
@@ -111,6 +112,12 @@ pub enum Commands {
 
     #[clap(long_about = "Remote data dir")]
     Clear,
+
+    #[clap(long_about = "Encrypt content with pub_key,input text, output base64")]
+    En { content: String },
+
+    #[clap(long_about = "Decrypt content with priv_key,input base64, output text")]
+    De { content: String },
 }
 
 impl Commands {
@@ -463,6 +470,18 @@ impl Commands {
             Commands::Clear => {
                 let data_dir = get_or_create_data_dir()?;
                 remove_dir_all::remove_dir_all(data_dir)?;
+            }
+            Commands::En { content } => {
+                let secret = get_or_create_secret()?;
+                let result =
+                    Secret::encrypt_with_pub_key_bits(&secret.pub_key_bits, content.as_bytes());
+                println!("{}", base64::encode(result));
+            }
+            Commands::De { content } => {
+                let secret = get_or_create_secret()?;
+                let data = base64::decode(content).unwrap();
+                let result = Secret::decrypt_width_priv_key_bits(&secret.priv_key_bits, &data)?;
+                println!("{}", String::from_utf8(result).unwrap());
             }
         };
         Ok(())
