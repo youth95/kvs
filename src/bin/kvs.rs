@@ -40,7 +40,7 @@ fn main() {
         .try_init()
         .unwrap();
     match kvs_cli.command.run(&kvs_cli.repository) {
-        Ok(_) => (()),
+        Ok(_) => (),
         Err(error) => tracing::error!("{:?}", error),
     }
 }

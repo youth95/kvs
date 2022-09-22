@@ -373,8 +373,9 @@ impl Commands {
             Commands::Local => {
                 let secret = get_or_create_secret()?;
                 let scope = to_addr(&secret.pub_key_bits);
-
+                let pub_key = base64::encode(secret.pub_key_bits.clone());
                 println!("scope: {}", scope);
+                println!("pub key: {}", pub_key);
             }
             Commands::Sync { path, public } => {
                 let (token, _) = get_or_create_token(&repository, false)?;

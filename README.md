@@ -87,7 +87,8 @@ this is change data
 10. show local info
 ```
 > kvs local
-scope: 0x1787994613fcb544bcc8ef4191cda243f315ab
+scope: 0x4d7153428dd617a410f114468d212a9cd1b7ccd0
+pub: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD9qWAweIhnLfBdjYj8oty1z2FYycQ8qhebrDLCQBJPTF1IfV282WCHET7Fsjd1C9+XMbW2xT0f73cZgSExgILeGjZFlx9gEf5VVJyBezfQ6yU2V9Emo58zRh6fjfoBGUsXmVIJIGCpnVjHg/ECEVKuDVQ3h0SEHrdxE98bSl9RIQIDAQAB
 ```
 
 11. Read other scope key
@@ -161,6 +162,32 @@ kvs read important_resource_urls | transform
 curl https://xxx/a.json | json "important" | kvs create important -f -p
 kvs read important -s your_scope
 ```
+
+## Case2 prove yourself
+
+You can tail your `pub key` to some website.
+
+```
+> kvs local
+scope: 0x4d7153428dd617a410f114468d212a9cd1b7ccd0
+pub: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD9qWAweIhnLfBdjYj8oty1z2FYycQ8qhebrDLCQBJPTF1IfV282WCHET7Fsjd1C9+XMbW2xT0f73cZgSExgILeGjZFlx9gEf5VVJyBezfQ6yU2V9Emo58zRh6fjfoBGUsXmVIJIGCpnVjHg/ECEVKuDVQ3h0SEHrdxE98bSl9RIQIDAQAB
+```
+
+Website will tail you a cipher text.
+
+```
+website: (your pub key) + (random value) -> (cipher text)
+```
+
+Now you can use `kvs de` command to decrypt the (cipher text)
+
+```
+> kvs de (cipher text)
+(random value)
+```
+
+Tail the (random value) to website. you will prove yourself to website.
+
 # Road Map
 
 Community
@@ -172,19 +199,30 @@ Community
 * [x] add `set` command to set the config in client local.
 * [x] add `--file` option in create and upload command.
 * [x] add the same option in `sync` command look like `create` `update`.
+* [x] append show public key in `kvs local`.
+
+* [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
+* [ ] add `kvs set whitelist` command to set a whitelist.
+* [ ] add `kvs search` command to search some content in different repository.
+* [ ] add `kvs de` command to decrypt some content. use local private key by default.
+* [ ] add `kvs en` command to encrypt some content. use local public key by default.
+
+
 
 
 * [x] fix `--file` option in create and upload command can be not give the filename, kvs will use the stdin content as value if you do that.
-* [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add server config to config the store backend.
 * [ ] add unit test and docs.
 * [ ] ~~add github action to release the bin file.~~
 * [ ] refactor the `Remote Action` model.
-* [ ] add `upgrade` command to sync the remote `kvs` cli to client local.
 * [ ] refactor the `aes session` to be a `aes stream`.
 * [ ] config docker container.
+
+
+* [ ] ``
 
 Commercial
 * [ ] add the p2p in share key progress.
 * [ ] Build a free central storage node.
+* [ ] add `upgrade` command to sync the remote `kvs` cli to client local.
 

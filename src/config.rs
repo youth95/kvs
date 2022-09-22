@@ -10,11 +10,11 @@ use crate::{
 
 pub fn get_or_create_token(
     repository: &String,
-    froce_create: bool,
+    force_create: bool,
 ) -> KVSResult<(KVSToken, String)> {
     let user_token_file_path = &get_or_create_user_config_dir()?.join("token");
 
-    if user_token_file_path.exists() && froce_create == false {
+    if user_token_file_path.exists() && force_create == false {
         Ok((
             bincode::deserialize(&std::fs::read(user_token_file_path)?)?,
             user_token_file_path.display().to_string(),
