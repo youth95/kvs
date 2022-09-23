@@ -18,11 +18,14 @@ jobs:
       run: cargo build --release --verbose
     - name: Run Tests
       run: cargo test --verbose
+    - name: Pre-release (linux)
+      run: |
+          cd target/release
+          zip -r kvs-x86_64-unknown-linux-gnu.zip kvs
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
-        name: kvs-x86_64-unknown-linux-gnu.zip
-        path: ./target/release/kvs
+        path: deno-x86_64-unknown-linux-gnu.zip
   build-windows:
     runs-on: windows-latest
     steps:
@@ -31,11 +34,14 @@ jobs:
       run: cargo build --release --verbose
     - name: Run Tests
       run: cargo test --verbose
+    - name: Pre-release (windows)
+      run: |
+          cd target/release
+          zip -r kvs-x86_64-pc-windows-msvc.zip kvs.exe
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
-        name: kvs-x86_64-pc-windows-msvc.zip
-        path: ./target/release/kvs.exe
+        path: kvs-x86_64-pc-windows-msvc.zip
   build-mac:
     runs-on: macOS-latest
     steps:
@@ -44,11 +50,14 @@ jobs:
       run: cargo build --release --verbose
     - name: Run Tests
       run: cargo test --verbose
+    - name: Pre-release (macOS)
+      run: |
+          cd target/release
+          zip -r kvs-x86_64-apple-darwin.zip kvs
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
-        name: kvs-x86_64-apple-darwin.zip
-        path: ./target/release/kvs
+        path: kvs-x86_64-apple-darwin.zip
   release:
     needs: [build-linux, build-windows,build-mac]
     runs-on: ubuntu-latest
