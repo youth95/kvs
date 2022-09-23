@@ -12,6 +12,12 @@ I want to create a content sharing tool that is managed by only one person and r
 # Install
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/youth95/kvs/main/install.sh | sh
+```
+
+or
+
+```bash
 cargo install key_value_service
 ```
 
@@ -216,9 +222,9 @@ Community
 * [ ] refactor the `Remote Action` model.
 * [ ] refactor the `aes session` to be a `aes stream`.
 * [ ] config docker container.
+* [ ] add `kvs upgrade` command to upgrade the kvs bin file.
 
 
-* [ ] ``
 
 Commercial
 * [ ] add the p2p in share key progress.
