@@ -24,9 +24,9 @@ else
 fi
 
 if [ $# -eq 0 ]; then
-	kvs_uri="https://github.com/youth95/kvs/releases/latest/download/kvs-${target}.zip"
+	kvs_uri="${PROXY}https://github.com/youth95/kvs/releases/latest/download/kvs-${target}.zip"
 else
-	kvs_uri="https://github.com/youth95/kvs/releases/download/${1}/kvs-${target}.zip"
+	kvs_uri="${PROXY}https://github.com/youth95/kvs/releases/download/${1}/kvs-${target}.zip"
 fi
 
 kev_install="$HOME/.kvs"
