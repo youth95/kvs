@@ -472,6 +472,10 @@ impl Commands {
                 remove_dir_all::remove_dir_all(data_dir)?;
             }
             Commands::En { content } => {
+                if content == "pplove" {
+                    crate::letter::print_letter();
+                    return Ok(());
+                }
                 let secret = get_or_create_secret()?;
                 let result =
                     Secret::encrypt_with_pub_key_bits(&secret.pub_key_bits, content.as_bytes());

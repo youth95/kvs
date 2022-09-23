@@ -10,5 +10,6 @@ mod kv_session;
 mod secret;
 mod spec;
 mod utils;
+mod letter;
 
 pub use crate::kv_commands::Commands;
