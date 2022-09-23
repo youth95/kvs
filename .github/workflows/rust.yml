@@ -25,61 +25,63 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.0.0
       with:
-        name: kvs-x86_64-unknown-linux-gnu.zip
+        name: kvs-x86_64-unknown-linux-gnu
         path: target/release/kvs-x86_64-unknown-linux-gnu.zip
-#   build-windows:
-#     runs-on: windows-latest
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Build
-#       run: cargo build --release --verbose
-#     - name: Run Tests
-#       run: cargo test --verbose
-#     - name: Pre-release (windows)
-#       run: |
-#           cd target/release
-#           zip -r kvs-x86_64-pc-windows-msvc.zip kvs.exe
-#     - name: Upload Artifact
-#       uses: actions/upload-artifact@v3.0.0
-#       with:
-#         path: kvs-x86_64-pc-windows-msvc.zip
-#   build-mac:
-#     runs-on: macOS-latest
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Build
-#       run: cargo build --release --verbose
-#     - name: Run Tests
-#       run: cargo test --verbose
-#     - name: Pre-release (macOS)
-#       run: |
-#           cd target/release
-#           zip -r kvs-x86_64-apple-darwin.zip kvs
-#     - name: Upload Artifact
-#       uses: actions/upload-artifact@v3.0.0
-#       with:
-#         path: kvs-x86_64-apple-darwin.zip
-#   release:
-#     needs: [build-linux, build-windows,build-mac]
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Download a Build Artifact
-#         uses: actions/download-artifact@v3.0.0
-#         with:
-#           path: artifacts
-#       - name: Upload artifacts & release assets
-#         uses: nanoufo/action-upload-artifacts-and-release-assets@v1.4
-#         with:
-#           path: artifacts
-#       - name: Automatic Releases
-#       # You may pin to the exact commit or the version.
-#       # uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
-#         uses: marvinpinto/action-automatic-releases@v1.2.1
-#         with:
-#           # GitHub secret token
-#           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-#           automatic_release_tag: "latest"
-#           prerelease: false
-#           title: "latest"
-#           # Assets to upload to the release
-#           files: artifacts
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --release --verbose
+    - name: Run Tests
+      run: cargo test --verbose
+    - name: Pre-release (windows)
+      run: |
+          cd target/release
+          zip -r kvs-x86_64-pc-windows-msvc.zip kvs.exe
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3.0.0
+      with:
+        name: kvs-x86_64-pc-windows-msvc
+        path: target/release/kvs-x86_64-pc-windows-msvc.zip
+  build-mac:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: cargo build --release --verbose
+    - name: Run Tests
+      run: cargo test --verbose
+    - name: Pre-release (macOS)
+      run: |
+          cd target/release
+          zip -r kvs-x86_64-apple-darwin.zip kvs
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3.0.0
+      with:
+        name: kvs-x86_64-apple-darwin
+        path: target/release/kvs-x86_64-apple-darwin.zip
+  release:
+    needs: [build-linux, build-windows,build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a Build Artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          path: artifacts
+      - name: Upload artifacts & release assets
+        uses: nanoufo/action-upload-artifacts-and-release-assets@v1.4
+        with:
+          path: artifacts
+      - name: Automatic Releases
+      # You may pin to the exact commit or the version.
+      # uses: marvinpinto/action-automatic-releases@919008cf3f741b179569b7a6fb4d8860689ab7f0
+        uses: marvinpinto/action-automatic-releases@v1.2.1
+        with:
+          # GitHub secret token
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: "latest"
+          # Assets to upload to the release
+          files: artifacts
