@@ -13,11 +13,14 @@ I want to create a content sharing tool that is managed by only one person and r
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/youth95/kvs/main/install.sh | sh
-# or
+```
+
+or use proxy
+```
 curl -fsSL https://ghproxy.com/https://raw.githubusercontent.com/youth95/kvs/main/install.sh | PROXY=https://ghproxy.com/ sh
 ```
 
-or
+or use cargo
 
 ```bash
 cargo install key_value_service
