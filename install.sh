@@ -19,7 +19,7 @@ else
 		echo "Error: Official Deno builds for Linux aarch64 are not available. (https://github.com/denoland/deno/issues/1846)" 1>&2
 		exit 1
 		;;
-	*) target="x86_64-unknown-linux-gnu" ;;
+	*) target="x86_64-unknown-linux-musl" ;;
 	esac
 fi
 
