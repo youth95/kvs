@@ -140,6 +140,7 @@ impl Commands {
                 reset_jwt_secret,
                 detach,
             } => {
+                let repository = "0.0.0.0:8888";
                 if *detach {
                     let args = std::env::args().map(|x| x).collect::<Vec<String>>();
                     let detach_command_args = args[1..]
