@@ -340,8 +340,9 @@ impl Commands {
             Commands::Read { key } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let mut session = get_kvs_session()?;
-                let scope = match key.split(":").next() {
-                    Some(scope) => Some(scope.to_string()),
+
+                let scope = match key.find(':') {
+                    Some(_) => Some(key.split(":").next().unwrap().to_string()),
                     None => None,
                 };
                 let key = match key.split(":").nth(1) {
