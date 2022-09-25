@@ -77,11 +77,7 @@ pub enum Commands {
     },
 
     #[clap(long_about = "Read key content")]
-    Read {
-        key: String,
-        #[clap(short, long, help = "In other scope")]
-        scope: Option<String>,
-    },
+    Read { key: String },
     #[clap(long_about = "Delete key")]
     Delete { key: String },
 
@@ -97,7 +93,10 @@ pub enum Commands {
     },
 
     #[clap(long_about = "List all keys info")]
-    List,
+    List {
+        #[clap(short, long, help = "add scope in public key")]
+        public: bool,
+    },
 
     #[clap(long_about = "Show remote info")]
     Remote,
@@ -338,9 +337,17 @@ impl Commands {
                 .request(&mut session)?;
             }
 
-            Commands::Read { key, scope } => {
+            Commands::Read { key } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
                 let mut session = get_kvs_session()?;
+                let scope = match key.split(":").next() {
+                    Some(scope) => Some(scope.to_string()),
+                    None => None,
+                };
+                let key = match key.split(":").nth(1) {
+                    Some(key) => key.to_string(),
+                    None => key.to_string(),
+                };
                 let scope = scope.clone();
                 let reply = ReadAction {
                     token: token.clone(),
@@ -451,8 +458,10 @@ impl Commands {
                 }
                 tracing::info!("sync finish")
             }
-            Commands::List => {
+            Commands::List { public } => {
                 let (token, _) = get_or_create_token(&repository, false)?;
+                let secret = get_or_create_secret()?;
+                let scope = to_addr(&secret.pub_key_bits);
                 let mut session = get_kvs_session()?;
                 let key_meta_list = ListAction { token }.request(&mut session)?;
                 key_meta_list.iter().for_each(|meta| {
@@ -464,7 +473,11 @@ impl Commands {
                             "private"
                         },
                         meta.size,
-                        meta.name,
+                        if meta.rand.is_none() && *public {
+                            format!("{}:{}", scope.to_string(), meta.name).to_string()
+                        } else {
+                            meta.name.to_string()
+                        },
                     );
                 });
             }

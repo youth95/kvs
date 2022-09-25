@@ -214,7 +214,7 @@ Community
 * [x] add `kvs de` command to decrypt some content. use local private key by default.
 * [x] add `kvs en` command to encrypt some content. use local public key by default.
 
-* [ ] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
+* [*] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add `kvs set whitelist` command to set a whitelist.
 * [ ] add `kvs search` command to search some content in different repository.
 
@@ -227,6 +227,7 @@ Community
 * [ ] refactor the `Remote Action` model.
 * [ ] refactor the `aes session` to be a `aes stream`.
 * [ ] config docker container.
+* [ ] multi identity support.
 * [ ] add `kvs upgrade` command to upgrade the kvs bin file.
 
 
