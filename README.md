@@ -104,7 +104,7 @@ pub: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD9qWAweIhnLfBdjYj8oty1z2FYycQ8qhebrDL
 
 11. Read other scope key
 ```
-> kvs read -s 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd test_pub
+> kvs read 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd:test_pub
 pub content
 ```
 
