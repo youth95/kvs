@@ -49,21 +49,21 @@ This project is still in the early stage of development and is only used as a de
 
 3. Create a private key value
 ```
-> kvs create foo "hello world"
+> kvs -r 0.0.0.0:8888 create foo "hello world"
 ```
 
 default, kvs will encrypt the value use your `priv_key` in local. Remote just judge the key's owner. The decryption process needs to be completed by the client itself.
 
 4. Read a key
 ```
-> kvs read foo
+> kvs -r 0.0.0.0:8888 read foo
 hello world
 ```
 
 5. Create a public key value
 
 ```
-> kvs create priv_foo "priv hello world" -p
+> kvs -r 0.0.0.0:8888 create priv_foo "priv hello world" -p
 ```
 
 If you just do. kvs will send the value and save value as plaintext in remote.
@@ -71,27 +71,27 @@ If you just do. kvs will send the value and save value as plaintext in remote.
 
 6. Read a private key
 ```
-> kvs cat priv_foo
+> kvs -r 0.0.0.0:8888 cat priv_foo
 priv hello world
 ```
 
 7. Delete a Key
 ```
-> kvs delete priv_foo
+> kvs -r 0.0.0.0:8888 delete priv_foo
 ```
 
 You just can delete key that owner is you.
 
 8. Update a Key
 ```
-kvs create priv_foo "this is change data"
-kvs read priv_foo
+kvs -r 0.0.0.0:8888 create priv_foo "this is change data"
+kvs -r 0.0.0.0:8888 read priv_foo
 this is change data
 ```
 
 9. show remote info
 ```
-> kvs remote
+> kvs -r 0.0.0.0:8888 remote
 0.1.3
 ```
 
@@ -104,7 +104,7 @@ pub: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQD9qWAweIhnLfBdjYj8oty1z2FYycQ8qhebrDL
 
 11. Read other scope key
 ```
-> kvs read 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd:test_pub
+> kvs -r 0.0.0.0:8888 read 0xad359ae3e478342ed2b5512ed7ff4ebb3ceb2dd:test_pub
 pub content
 ```
 
@@ -120,7 +120,7 @@ pub content
 
 14. remove all keys
 ```
-> kvs list | awk -F '\t' '{print "kvs delete " $2}' | bash
+> kvs -r 0.0.0.0:8888 list | awk -F '\t' '{print "kvs delete " $2}' | bash
 ```
 # Examples
 
@@ -167,14 +167,14 @@ kvs create important_resource_urls -f important_resource_urls.txt
 kvs read important_resource_urls | transform
 ```
 
-## Case1 sync info in public
+## Case2 sync info in public
 
 ```bash
 curl https://xxx/a.json | json "important" | kvs create important -f -p
 kvs read important -s your_scope
 ```
 
-## Case2 prove yourself
+## Case3 prove yourself
 
 You can tail your `pub key` to some website.
 
@@ -214,26 +214,33 @@ Community
 * [x] add `kvs de` command to decrypt some content. use local private key by default.
 * [x] add `kvs en` command to encrypt some content. use local public key by default.
 
-* [*] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
+* [x] remove `--scope` option in read, you can use `kvs read your_scope:some_key` to read a public key.
 * [ ] add `kvs set whitelist` command to set a whitelist.
 * [ ] add `kvs search` command to search some content in different repository.
+* [ ] add `kvs upgrade` command to upgrade the kvs bin file.
+* [ ] add `--local` global option. means `-r 0.0.0.0:8888`.  
+* [ ] add `kvs migrate` command to migrate the data to other repository node.
 
 
 
 * [x] fix `--file` option in create and upload command can be not give the filename, kvs will use the stdin content as value if you do that.
-* [ ] add server config to config the store backend.
+* [x] add github action to release the bin file.
 * [ ] add unit test and docs.
-* [ ] ~~add github action to release the bin file.~~
-* [ ] refactor the `Remote Action` model.
-* [ ] refactor the `aes session` to be a `aes stream`.
 * [ ] config docker container.
 * [ ] multi identity support.
-* [ ] add `kvs upgrade` command to upgrade the kvs bin file.
 
+* [ ] refactor the `Store trait` and implement `FSStore` and `OSSStore`.
+* [ ] add server config to config the store backend. eg use `OSSStore`.
+
+* [ ] identity data monitoring.
+* [ ] advocate some key representing identity.
+
+* [ ] refactor the `aes session` to be a `aes stream`.
 
 
 Commercial
 * [ ] add the p2p in share key progress.
-* [ ] Build a free central storage node.
-* [ ] add `upgrade` command to sync the remote `kvs` cli to client local.
-
+* [ ] build a free central storage node.
+* [ ] design reasonable pricing.
+* [ ] regulatory public data.
+* [ ] get public data by http.
