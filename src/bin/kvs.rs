@@ -1,4 +1,4 @@
-use clap::{ArgEnum, Parser};
+use clap::Parser;
 use key_value_service::Commands;
 use tracing_subscriber::prelude::*;
 
@@ -13,11 +13,6 @@ struct KVS {
 
     #[clap(short, long, help = "Set Repository")]
     repository: Option<String>,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ArgEnum)]
-enum URLType {
-    Embed,
 }
 
 fn main() {
